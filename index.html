@@ -1,21 +1,26 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#020617">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Super Tic-Tac-Toe: Ultimate 9x9 strategic grid game with local AI, multilingual support, and zero external dependencies.">
+  <meta name="description"
+    content="Super Tic-Tac-Toe: Ultimate 9x9 strategic grid game with local AI, cosmetic marker and grid skins, power-ups, economy, and rewarded ads.">
   <title>Super Tic-Tac-Toe | Ultimate Strategic Grid</title>
-  
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap"
+    rel="stylesheet">
+
   <script>
     tailwind.config = {
       theme: {
@@ -23,13 +28,6 @@
           fontFamily: {
             sans: ['Outfit', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            brand: {
-              x: '#38bdf8',    // Cyan neon
-              o: '#fb7185',    // Rose neon
-              active: '#818cf8', // Indigo light
-            }
           }
         }
       }
@@ -47,47 +45,68 @@
     body {
       font-family: 'Outfit', sans-serif;
       background-color: #020617;
-      background-image: 
+      background-image:
         radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 80% 100%, rgba(244, 63, 94, 0.06) 0%, transparent 50%),
         radial-gradient(circle at 10% 80%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
     }
 
-    .glow-x {
-      text-shadow: 0 0 12px rgba(56, 189, 248, 0.85);
+    /* Dynamic Skin Glows for Marks */
+    .glow-skin-x {
+      text-shadow: var(--skin-x-glow, 0 0 12px rgba(56, 189, 248, 0.85));
+      color: var(--skin-x-color, #38bdf8) !important;
     }
-    .glow-o {
-      text-shadow: 0 0 12px rgba(251, 113, 133, 0.85);
-    }
-    .glow-box-x {
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
-    }
-    .glow-box-o {
-      box-shadow: 0 0 16px rgba(251, 113, 133, 0.35);
+
+    .glow-skin-o {
+      text-shadow: var(--skin-o-glow, 0 0 12px rgba(251, 113, 133, 0.85));
+      color: var(--skin-o-color, #fb7185) !important;
     }
 
     /* Active mini-board pulse border */
     .active-board {
-      box-shadow: 0 0 18px rgba(99, 102, 241, 0.45);
-      border-color: rgba(129, 140, 248, 0.9) !important;
-      animation: pulse-glow 2s infinite ease-in-out;
+      box-shadow: 0 0 20px var(--grid-active-glow, rgba(99, 102, 241, 0.55)) !important;
+      border-color: var(--grid-active-border, rgba(129, 140, 248, 0.9)) !important;
+      animation: pulse-active-board 2s infinite ease-in-out;
     }
 
-    @keyframes pulse-glow {
-      0%, 100% {
-        box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
-        border-color: rgba(99, 102, 241, 0.7);
+    @keyframes pulse-active-board {
+      0%,
+      100% {
+        box-shadow: 0 0 12px var(--grid-active-glow, rgba(99, 102, 241, 0.35));
+        filter: brightness(1);
       }
+
       50% {
-        box-shadow: 0 0 22px rgba(168, 85, 247, 0.6);
-        border-color: rgba(192, 132, 252, 1);
+        box-shadow: 0 0 26px var(--grid-active-glow, rgba(99, 102, 241, 0.75));
+        filter: brightness(1.22);
+      }
+    }
+
+    /* Tactical Hint Glow */
+    .hint-highlight {
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.95) !important;
+      border-color: #f59e0b !important;
+      background-color: rgba(245, 158, 11, 0.28) !important;
+      animation: hint-pulse 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes hint-pulse {
+      0% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+
+      100% {
+        transform: scale(1.06);
+        filter: brightness(1.35);
       }
     }
 
     /* Micro animations for cells */
     .cell-btn {
-      transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease;
+      transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, border-color 0.15s ease;
     }
+
     .cell-btn:active:not(:disabled) {
       transform: scale(0.90);
     }
@@ -96,42 +115,68 @@
     ::-webkit-scrollbar {
       width: 6px;
     }
+
     ::-webkit-scrollbar-track {
       background: rgba(15, 23, 42, 0.6);
       border-radius: 9999px;
     }
+
     ::-webkit-scrollbar-thumb {
       background: rgba(51, 65, 85, 0.8);
       border-radius: 9999px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(71, 85, 105, 1);
     }
   </style>
 </head>
-<body class="h-[100dvh] max-h-[100dvh] text-slate-100 flex flex-col justify-between items-center p-2 sm:p-4 overflow-hidden select-none">
+
+<body
+  class="h-[100dvh] max-h-[100dvh] text-slate-100 flex flex-col justify-between items-center p-2 sm:p-4 overflow-hidden select-none">
 
   <!-- ==========================================================================
-       VIEW 1: START / LAUNCH MENU SCREEN
+       VIEW 1: START / LAUNCH MENU SCREEN (Exclusive Shop Access)
        ========================================================================== -->
-  <div id="screen-menu" class="w-full max-w-md h-full flex flex-col justify-between items-center py-3 sm:py-6 px-3 animate-in fade-in zoom-in-95 duration-200">
-    
-    <!-- Menu Top Bar (Settings & Rules only) -->
-    <div class="w-full flex justify-end items-center gap-2 shrink-0">
-      <button id="btn-menu-settings" class="p-2 sm:px-3.5 sm:py-2 bg-slate-900/90 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700/80 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shadow-md">
-        <span>⚙️</span>
-        <span id="ui-menu-btn-settings">Settings</span>
+  <div id="screen-menu"
+    class="w-full max-w-md h-full flex flex-col justify-between items-center py-2.5 sm:py-5 px-3 animate-in fade-in zoom-in-95 duration-200">
+
+    <!-- Menu Top Bar (Coins, Shop Button, Settings & Rules) -->
+    <div class="w-full flex justify-between items-center gap-2 shrink-0">
+      <!-- Cyber Coins Badge with Quick Ad Top-Up -->
+      <button id="btn-menu-coins"
+        class="flex items-center gap-1.5 bg-slate-900/90 border border-amber-500/40 hover:border-amber-400 px-2.5 py-1.5 rounded-xl shadow-md transition active:scale-95 group">
+        <span class="text-sm">🪙</span>
+        <span id="menu-coins-amount" class="text-xs font-black font-mono text-amber-300">100</span>
+        <span
+          class="ml-1 text-[10px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 group-hover:bg-amber-500/40 font-bold">+</span>
       </button>
-      <button id="btn-menu-rules" class="p-2 sm:px-3.5 sm:py-2 bg-slate-900/90 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700/80 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shadow-md">
-        <span>❓</span>
-        <span id="ui-menu-btn-rules">Rules</span>
-      </button>
+
+      <!-- Quick Actions (Shop is exclusive here!) -->
+      <div class="flex items-center gap-1.5">
+        <button id="btn-menu-shop"
+          class="p-1.5 px-3 bg-gradient-to-r from-amber-500/25 to-orange-500/25 hover:from-amber-500/40 hover:to-orange-500/40 text-amber-300 rounded-xl border border-amber-500/60 text-xs font-bold transition active:scale-95 flex items-center gap-1.5 shadow-md shadow-amber-950/40">
+          <span>🛍️</span>
+          <span id="ui-menu-btn-shop">Shop</span>
+        </button>
+        <button id="btn-menu-settings"
+          class="p-1.5 px-2 bg-slate-900/90 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700/80 text-xs font-semibold transition active:scale-95 shadow-md"
+          title="Settings">
+          <span>⚙️</span>
+        </button>
+        <button id="btn-menu-rules"
+          class="p-1.5 px-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700/80 text-xs font-semibold transition active:scale-95 flex items-center gap-1 shadow-md">
+          <span>❓</span>
+          <span id="ui-menu-btn-rules">Rules</span>
+        </button>
+      </div>
     </div>
 
     <!-- Hero Title & Decorative Grid -->
     <div class="flex flex-col items-center text-center my-auto shrink-0">
-      <div class="relative mb-3">
-        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-tr from-cyan-500/20 via-indigo-500/20 to-rose-500/20 rounded-2xl border border-indigo-500/40 flex items-center justify-center shadow-xl shadow-indigo-500/10">
+      <div class="relative mb-2 sm:mb-3">
+        <div
+          class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-tr from-cyan-500/20 via-indigo-500/20 to-rose-500/20 rounded-2xl border border-indigo-500/40 flex items-center justify-center shadow-xl shadow-indigo-500/10">
           <div class="grid grid-cols-3 gap-1 w-10 h-10 sm:w-12 sm:h-12">
             <span class="bg-cyan-500/80 rounded-sm"></span>
             <span class="bg-slate-700/60 rounded-sm"></span>
@@ -145,7 +190,8 @@
           </div>
         </div>
       </div>
-      <h1 id="ui-menu-title" class="text-2xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400 bg-clip-text text-transparent">
+      <h1 id="ui-menu-title"
+        class="text-2xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400 bg-clip-text text-transparent">
         SUPER TIC-TAC-TOE
       </h1>
       <p id="ui-menu-subtitle" class="text-xs sm:text-sm text-slate-400 font-medium tracking-wide mt-1">
@@ -155,91 +201,123 @@
 
     <!-- Selection Hub (Mode & Difficulty) -->
     <div class="w-full flex flex-col gap-3 shrink-0 my-auto">
-      
+
       <!-- 1º Decision: Game Mode -->
       <div>
-        <label id="ui-menu-label-mode" class="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
+        <label id="ui-menu-label-mode"
+          class="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
           1. Select Game Mode
         </label>
         <div class="grid grid-cols-2 gap-2">
-          <!-- Solo Mode Card -->
-          <button id="menu-opt-solo" class="flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-indigo-500 bg-indigo-950/40 shadow-lg shadow-indigo-950/50">
+          <button id="menu-opt-solo"
+            class="flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-indigo-500 bg-indigo-950/40 shadow-lg shadow-indigo-950/50">
             <span class="text-2xl mb-1">🤖</span>
             <span id="ui-menu-mode-solo-title" class="text-xs sm:text-sm font-black text-slate-100">Solo vs AI</span>
-            <span id="ui-menu-mode-solo-desc" class="text-[10px] text-indigo-300 font-medium mt-0.5">Player X vs AI Bot</span>
+            <span id="ui-menu-mode-solo-desc" class="text-[10px] text-indigo-300 font-medium mt-0.5">Player X vs AI
+              Bot</span>
           </button>
-          <!-- Duo Mode Card -->
-          <button id="menu-opt-pvp" class="flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700">
+          <button id="menu-opt-pvp"
+            class="flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700">
             <span class="text-2xl mb-1">👥</span>
             <span id="ui-menu-mode-pvp-title" class="text-xs sm:text-sm font-black text-slate-200">2 Players</span>
-            <span id="ui-menu-mode-pvp-desc" class="text-[10px] text-slate-400 font-medium mt-0.5">Pass & Play Local</span>
+            <span id="ui-menu-mode-pvp-desc" class="text-[10px] text-slate-400 font-medium mt-0.5">Pass & Play
+              Local</span>
           </button>
         </div>
       </div>
 
-      <!-- 2º Decision: Difficulty (Only if Solo is selected) -->
+      <!-- 2º Decision: Difficulty (Solo Only) -->
       <div id="menu-difficulty-section" class="transition-all duration-300">
-        <label id="ui-menu-label-diff" class="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
+        <label id="ui-menu-label-diff"
+          class="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
           2. AI Difficulty Level
         </label>
         <div class="grid grid-cols-4 gap-1.5">
-          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700" data-diff="easy" id="menu-diff-easy">
+          <button
+            class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700"
+            data-diff="easy" id="menu-diff-easy">
             Easy
           </button>
-          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700" data-diff="medium" id="menu-diff-medium">
+          <button
+            class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700"
+            data-diff="medium" id="menu-diff-medium">
             Med
           </button>
-          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-indigo-500 bg-indigo-950/60 text-white shadow-md shadow-indigo-950/50" data-diff="hard" id="menu-diff-hard">
+          <button
+            class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-indigo-500 bg-indigo-950/60 text-white shadow-md shadow-indigo-950/50"
+            data-diff="hard" id="menu-diff-hard">
             Hard
           </button>
-          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700" data-diff="extreme" id="menu-diff-extreme">
+          <button
+            class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700"
+            data-diff="extreme" id="menu-diff-extreme">
             Extreme
           </button>
         </div>
       </div>
 
       <!-- Play Action Button -->
-      <button id="btn-start-game" class="w-full py-3.5 sm:py-4 mt-2 bg-gradient-to-r from-cyan-500 via-indigo-600 to-rose-500 hover:from-cyan-400 hover:via-indigo-500 hover:to-rose-400 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-indigo-900/40 transition transform active:scale-95 flex items-center justify-center gap-2">
+      <button id="btn-start-game"
+        class="w-full py-3.5 sm:py-4 mt-2 bg-gradient-to-r from-cyan-500 via-indigo-600 to-rose-500 hover:from-cyan-400 hover:via-indigo-500 hover:to-rose-400 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-indigo-900/40 transition transform active:scale-95 flex items-center justify-center gap-2">
         <span>🎮</span>
         <span id="ui-menu-btn-play">START MATCH</span>
       </button>
     </div>
 
-    <!-- Blank spacing for perfect alignment (Tip removed from Menu as requested) -->
     <div class="py-1"></div>
   </div>
 
   <!-- ==========================================================================
-       VIEW 2: ACTIVE GAMEPLAY SCREEN (Initially Hidden)
+       VIEW 2: ACTIVE GAMEPLAY SCREEN (Initially Hidden - No Shop here)
        ========================================================================== -->
-  <div id="screen-game" class="w-full max-w-lg h-full flex flex-col justify-between items-center hidden animate-in fade-in duration-200">
-    
-    <!-- Top Game Bar (Clean: Title, Badge, and Pause/Menu Button) -->
+  <div id="screen-game"
+    class="w-full max-w-lg h-full flex flex-col justify-between items-center hidden animate-in fade-in duration-200">
+
+    <!-- Top Game Bar (Clean & Focused: Title, Badge, Coins & Pause) -->
     <header class="w-full flex items-center justify-between gap-2 shrink-0 z-20">
-      <div class="flex items-center gap-2">
-        <h1 id="ui-game-title" class="text-base sm:text-lg font-black tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400 bg-clip-text text-transparent leading-none">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <h1 id="ui-game-title"
+          class="text-sm sm:text-base font-black tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400 bg-clip-text text-transparent leading-none">
           SUPER TIC-TAC-TOE
         </h1>
-        <span id="ui-game-mode-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 border border-indigo-700 text-indigo-300">
+        <span id="ui-game-mode-badge"
+          class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 border border-indigo-700 text-indigo-300">
           Solo • Hard
         </span>
       </div>
 
-      <!-- Pause / Menu Button -->
-      <button id="btn-open-pause" class="p-1.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-md shadow-indigo-600/30 active:scale-95 flex items-center gap-1.5" title="Menu & Pause" aria-label="Menu & Pause">
-        <span>⏸️</span>
-        <span id="ui-btn-pause-label">Menu</span>
-      </button>
+      <!-- Top Right: Coins Display & Pause Button -->
+      <div class="flex items-center gap-1.5">
+        <!-- Cyber Coins in Game (Display Badge - Shop is only accessible in Start Menu) -->
+        <div id="game-coins-badge"
+          class="flex items-center gap-1 bg-slate-900/90 border border-amber-500/40 px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm select-none cursor-default"
+          title="Cyber Coins">
+          <span>🪙</span>
+          <span id="game-coins-amount" class="text-xs font-black font-mono text-amber-300">100</span>
+        </div>
+
+        <!-- Pause / Menu Button -->
+        <button id="btn-open-pause"
+          class="p-1 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-md shadow-indigo-600/30 active:scale-95 flex items-center gap-1"
+          title="Menu & Pause">
+          <span>⏸️</span>
+          <span id="ui-btn-pause-label">Menu</span>
+        </button>
+      </div>
     </header>
 
     <!-- HUD: Score & Turn Indicators -->
-    <section class="w-full bg-slate-900/90 border border-slate-800/90 rounded-xl p-2 sm:p-2.5 backdrop-blur-md shadow-xl shrink-0 my-1">
+    <section
+      class="w-full bg-slate-900/90 border border-slate-800/90 rounded-xl p-1.5 sm:p-2 backdrop-blur-md shadow-xl shrink-0 my-0.5 sm:my-1">
       <div class="flex justify-between items-center gap-2">
         <!-- Player X Card -->
-        <div id="player-x-card" class="flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-cyan-500/60 bg-cyan-950/40 glow-box-x scale-[1.02]">
-          <span class="text-xl sm:text-2xl font-black text-cyan-400 glow-x font-mono leading-none">X</span>
+        <div id="player-x-card"
+          class="flex items-center gap-2 p-1.5 px-2 sm:px-3 rounded-lg border transition-all duration-300 border-cyan-500/60 bg-cyan-950/40 glow-box-x scale-[1.02]">
+          <span id="hud-player-x-mark"
+            class="text-xl sm:text-2xl font-black glow-skin-x font-mono leading-none">X</span>
           <div class="leading-tight">
-            <div id="ui-player-x-name" class="text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider">Player X</div>
+            <div id="ui-player-x-name" class="text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider">
+              Player X</div>
             <div id="score-x" class="text-xs sm:text-sm font-extrabold text-cyan-300 font-mono">0 W</div>
           </div>
         </div>
@@ -249,70 +327,99 @@
           <div id="turn-subtitle" class="text-[9px] sm:text-[10px] uppercase tracking-widest text-slate-400 font-bold">
             CURRENT TURN
           </div>
-          <div id="turn-status-text" class="text-xs sm:text-sm font-black text-cyan-400 glow-x flex items-center gap-1.5 truncate">
+          <div id="turn-status-text"
+            class="text-xs sm:text-sm font-black glow-skin-x flex items-center gap-1.5 truncate">
             <span>YOUR TURN</span>
           </div>
         </div>
 
         <!-- Player O / AI Card -->
-        <div id="player-o-card" class="flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-transparent opacity-50">
+        <div id="player-o-card"
+          class="flex items-center gap-2 p-1.5 px-2 sm:px-3 rounded-lg border transition-all duration-300 border-transparent opacity-50">
           <div class="text-right leading-tight">
-            <div id="ui-player-o-name" class="text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider">AI Master</div>
+            <div id="ui-player-o-name" class="text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider">
+              AI Master</div>
             <div id="score-o" class="text-xs sm:text-sm font-extrabold text-rose-300 font-mono">0 W</div>
           </div>
-          <span class="text-xl sm:text-2xl font-black text-rose-400 glow-o font-mono leading-none">O</span>
+          <span id="hud-player-o-mark"
+            class="text-xl sm:text-2xl font-black glow-skin-o font-mono leading-none">O</span>
         </div>
       </div>
 
       <!-- Move Directive Status Pill -->
-      <div id="directive-box" class="mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-emerald-950/40 text-emerald-300 border-emerald-800/50">
+      <div id="directive-box"
+        class="mt-1 text-center text-[10px] sm:text-xs font-semibold py-0.5 px-2 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-emerald-950/40 text-emerald-300 border-emerald-800/50">
         <span id="directive-icon">🎯</span>
         <span id="directive-text">Free move! Pick any grid to play.</span>
       </div>
     </section>
 
-    <!-- Main 9x9 Strategic Board -->
+    <!-- Tactical Power-ups Bar (Solo Mode only) -->
+    <div id="powerups-bar" class="w-full flex items-center justify-center gap-2 my-0.5 shrink-0">
+      <!-- Undo Move Power-up -->
+      <button id="btn-powerup-undo"
+        class="flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-900/90 border border-indigo-700/60 hover:border-indigo-400 text-[11px] font-bold text-slate-200 transition active:scale-95 shadow-md">
+        <span>↶</span>
+        <span id="ui-powerup-undo">Undo</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold">30
+          🪙</span>
+      </button>
+
+      <!-- Tactical Hint Power-up -->
+      <button id="btn-powerup-hint"
+        class="flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-900/90 border border-indigo-700/60 hover:border-indigo-400 text-[11px] font-bold text-slate-200 transition active:scale-95 shadow-md">
+        <span>💡</span>
+        <span id="ui-powerup-hint">Hint</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold">20
+          🪙</span>
+      </button>
+    </div>
+
+    <!-- Main 9x9 Strategic Board (Styled dynamically with Grid Theme) -->
     <main class="flex-1 flex items-center justify-center w-full min-h-0 relative my-auto">
-      <div id="macro-board-container" class="relative aspect-square p-1.5 sm:p-2.5 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-sm"
-           style="width: min(94vw, 440px, calc(100dvh - 215px)); height: min(94vw, 440px, calc(100dvh - 215px));">
+      <div id="macro-board-container"
+        class="relative aspect-square p-1.5 sm:p-2.5 rounded-2xl border shadow-2xl backdrop-blur-sm transition-all duration-300"
+        style="width: min(94vw, 440px, calc(100dvh - 245px)); height: min(94vw, 440px, calc(100dvh - 245px));">
         <div id="macro-board" class="grid grid-cols-3 gap-1.5 sm:gap-2.5 w-full h-full">
           <!-- 9 Mini-boards injected dynamically by JS -->
         </div>
       </div>
     </main>
 
-    <!-- Centered In-Game Footer Tip (Only displayed during gameplay) -->
+    <!-- Centered In-Game Footer Tip -->
     <footer class="w-full text-center text-[10px] sm:text-[11px] text-slate-400 font-medium py-1 shrink-0">
       <span id="ui-game-footer-tip">💡 Think 2 moves ahead to dominate the grid!</span>
     </footer>
   </div>
 
   <!-- ==========================================================================
-       MODAL 1: SETTINGS (ACCESSED FROM START MENU)
+       MODAL 1: SETTINGS (START MENU)
        ========================================================================== -->
-  <div id="modal-settings" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
-    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4">
-      
-      <!-- Settings Header -->
+  <div id="modal-settings"
+    class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
+    <div
+      class="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4">
+
       <div class="flex items-center justify-between pb-2 border-b border-slate-800">
         <h2 id="modal-settings-title" class="text-lg sm:text-xl font-black text-slate-100 flex items-center gap-2">
           <span>⚙️</span> Settings
         </h2>
-        <button id="btn-close-settings-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition" aria-label="Close modal">
+        <button id="btn-close-settings-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition"
+          aria-label="Close modal">
           ✕
         </button>
       </div>
 
-      <!-- Settings Controls -->
       <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800 flex flex-col gap-3.5">
         <div id="ui-settings-subtitle" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
           Preferences & Audio
         </div>
-        
+
         <!-- Sound Toggle -->
         <div class="flex items-center justify-between">
           <span id="ui-settings-label-sound" class="text-xs font-semibold text-slate-300">Sound Effects</span>
-          <button id="btn-settings-sound-toggle" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-200 border border-slate-700 transition active:scale-95 flex items-center gap-1.5">
+          <button id="btn-settings-sound-toggle"
+            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-200 border border-slate-700 transition active:scale-95 flex items-center gap-1.5">
             <span id="settings-sound-icon">🔊</span>
             <span id="settings-sound-status">ON</span>
           </button>
@@ -322,134 +429,302 @@
         <div class="flex items-center justify-between">
           <span id="ui-settings-label-lang" class="text-xs font-semibold text-slate-300">Language</span>
           <div class="relative">
-            <button id="btn-settings-lang" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold transition active:scale-95">
+            <button id="btn-settings-lang"
+              class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold transition active:scale-95">
               <span id="settings-lang-flag">🇺🇸</span>
               <span id="settings-lang-code" class="font-mono">EN</span>
-              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
             </button>
-            <!-- Dropdown -->
-            <div id="dropdown-settings-lang" class="hidden absolute right-0 bottom-full mb-1 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="en"><span>🇺🇸</span> English</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="pt"><span>🇧🇷</span> Português</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="es"><span>🇪🇸</span> Español</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="hi"><span>🇮🇳</span> हिन्दी</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="zh"><span>🇨🇳</span> 简体中文</button>
+            <div id="dropdown-settings-lang"
+              class="hidden absolute right-0 bottom-full mb-1 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="en"><span>🇺🇸</span> English</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="pt"><span>🇧🇷</span> Português</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="es"><span>🇪🇸</span> Español</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="hi"><span>🇮🇳</span> हिन्दी</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="zh"><span>🇨🇳</span> 简体中文</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Close Button -->
-      <button id="btn-close-settings" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-md transition active:scale-95 text-xs sm:text-sm">
+      <button id="btn-close-settings"
+        class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-md transition active:scale-95 text-xs sm:text-sm">
         Done
       </button>
-
     </div>
   </div>
 
   <!-- ==========================================================================
-       MODAL 2: PAUSE MENU (ACCESSED DURING MATCH)
+       MODAL 2: PAUSE MENU (IN-GAME)
        ========================================================================== -->
-  <div id="modal-pause" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
-    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4">
-      
-      <!-- Pause Header -->
+  <div id="modal-pause"
+    class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
+    <div
+      class="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4">
+
       <div class="flex items-center justify-between pb-2 border-b border-slate-800">
         <h2 id="modal-pause-title" class="text-lg sm:text-xl font-black text-slate-100 flex items-center gap-2">
           <span>⏸️</span> Game Paused
         </h2>
-        <button id="btn-close-pause-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition" aria-label="Close modal">
+        <button id="btn-close-pause-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition"
+          aria-label="Close modal">
           ✕
         </button>
       </div>
 
-      <!-- Action Buttons -->
       <div class="flex flex-col gap-2">
-        <button id="btn-pause-resume" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-sm">
+        <button id="btn-pause-resume"
+          class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-sm">
           <span>▶️</span>
           <span id="ui-pause-resume">Resume Match</span>
         </button>
 
-        <button id="btn-pause-restart" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+        <button id="btn-pause-restart"
+          class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
           <span>🔄</span>
           <span id="ui-pause-restart">Restart Match</span>
         </button>
 
-        <button id="btn-pause-menu" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+        <button id="btn-pause-menu"
+          class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
           <span>🏠</span>
           <span id="ui-pause-menu">Main Menu</span>
         </button>
       </div>
 
-      <!-- In-Pause Settings Section -->
       <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col gap-3">
         <div id="ui-pause-preferences-title" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
           Preferences & Audio
         </div>
-        
-        <!-- Sound Toggle -->
+
         <div class="flex items-center justify-between">
           <span id="ui-pause-label-sound" class="text-xs font-semibold text-slate-300">Sound Effects</span>
-          <button id="btn-pause-sound-toggle" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-200 border border-slate-700 transition active:scale-95 flex items-center gap-1.5">
+          <button id="btn-pause-sound-toggle"
+            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-200 border border-slate-700 transition active:scale-95 flex items-center gap-1.5">
             <span id="pause-sound-icon">🔊</span>
             <span id="pause-sound-status">ON</span>
           </button>
         </div>
 
-        <!-- Language Selector -->
         <div class="flex items-center justify-between">
           <span id="ui-pause-label-lang" class="text-xs font-semibold text-slate-300">Language</span>
           <div class="relative">
-            <button id="btn-pause-lang" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold transition active:scale-95">
+            <button id="btn-pause-lang"
+              class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold transition active:scale-95">
               <span id="pause-lang-flag">🇺🇸</span>
               <span id="pause-lang-code" class="font-mono">EN</span>
-              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
             </button>
-            <!-- Dropdown -->
-            <div id="dropdown-pause-lang" class="hidden absolute right-0 bottom-full mb-1 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="en"><span>🇺🇸</span> English</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="pt"><span>🇧🇷</span> Português</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="es"><span>🇪🇸</span> Español</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="hi"><span>🇮🇳</span> हिन्दी</button>
-              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="zh"><span>🇨🇳</span> 简体中文</button>
+            <div id="dropdown-pause-lang"
+              class="hidden absolute right-0 bottom-full mb-1 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="en"><span>🇺🇸</span> English</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="pt"><span>🇧🇷</span> Português</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="es"><span>🇪🇸</span> Español</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="hi"><span>🇮🇳</span> हिन्दी</button>
+              <button
+                class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition"
+                data-lang="zh"><span>🇨🇳</span> 简体中文</button>
             </div>
           </div>
         </div>
 
-        <!-- Rules Shortcut -->
-        <button id="btn-pause-open-rules" class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-indigo-300 rounded-lg text-xs font-semibold border border-indigo-900/50 transition flex items-center justify-center gap-1.5">
+        <button id="btn-pause-open-rules"
+          class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-indigo-300 rounded-lg text-xs font-semibold border border-indigo-900/50 transition flex items-center justify-center gap-1.5">
           <span>❓</span>
           <span id="ui-pause-view-rules">How to Play</span>
         </button>
       </div>
-
     </div>
   </div>
 
   <!-- ==========================================================================
-       MODAL 3: HOW TO PLAY / RULES (Fully Localized including Diagram)
+       MODAL 3: COSMETICS SHOP (2 TABS: MARKERS & GRID SKINS)
        ========================================================================== -->
-  <div id="modal-rules" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
-    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90dvh] flex flex-col justify-between overflow-hidden">
-      
+  <div id="modal-shop"
+    class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
+    <div
+      class="bg-slate-900 border border-amber-500/40 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl flex flex-col justify-between max-h-[92dvh] overflow-hidden">
+
+      <!-- Shop Header with Coins Balance -->
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
+        <h2 id="modal-shop-title" class="text-base sm:text-lg font-black text-slate-100 flex items-center gap-2">
+          <span>🛍️</span> Loja de Cosméticos
+        </h2>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 bg-amber-950/60 border border-amber-500/50 px-2.5 py-1 rounded-xl">
+            <span class="text-xs">🪙</span>
+            <span id="shop-coins-amount" class="text-xs font-black font-mono text-amber-300">100</span>
+          </div>
+          <button id="btn-close-shop-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition"
+            aria-label="Fechar loja">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Rewarded Ad Option in Shop -->
+      <div
+        class="my-2 bg-gradient-to-r from-amber-950/40 to-orange-950/40 p-2.5 rounded-xl border border-amber-500/40 flex items-center justify-between gap-2 shrink-0">
+        <div class="leading-tight">
+          <div id="ui-shop-ad-title" class="text-xs font-bold text-amber-200">Precisa de mais moedas?</div>
+          <div id="ui-shop-ad-desc" class="text-[10px] text-amber-400/80">Assista a um vídeo de 5s para ganhar moedas grátis!</div>
+        </div>
+        <button id="btn-shop-watch-ad"
+          class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-lg text-xs shadow-md transition active:scale-95 shrink-0 flex items-center gap-1">
+          <span>📺</span>
+          <span id="ui-shop-btn-watch">+100 🪙</span>
+        </button>
+      </div>
+
+      <!-- 2 Tabs Switcher: Markers vs Grid Skins -->
+      <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 mb-2 shrink-0">
+        <button id="tab-btn-markers"
+          class="flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow-sm">
+          <span>🎨</span>
+          <span id="ui-tab-markers-label">Marcadores (X e O)</span>
+        </button>
+        <button id="tab-btn-grid"
+          class="flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200">
+          <span>🏟️</span>
+          <span id="ui-tab-grid-label">Grade / Tabuleiro</span>
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Marker Skins List -->
+      <div id="shop-tab-markers-content" class="overflow-y-auto pr-1 space-y-2 my-1 max-h-[46dvh]">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <!-- Tab Content 2: Grid Arena Skins List -->
+      <div id="shop-tab-grid-content" class="overflow-y-auto pr-1 space-y-2 my-1 max-h-[46dvh] hidden">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <!-- Close Button -->
+      <button id="btn-close-shop"
+        class="w-full mt-2.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition text-xs sm:text-sm shrink-0">
+        Fechar Loja
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 4: REWARDED AD SIMULATION (5s Mock SDK)
+       ========================================================================== -->
+  <div id="modal-rewarded-ad"
+    class="fixed inset-0 bg-slate-950/95 backdrop-blur-lg flex items-center justify-center p-4 z-50 hidden animate-in fade-in duration-200">
+    <div
+      class="bg-slate-900 border border-indigo-500/50 rounded-2xl p-5 sm:p-7 max-w-sm w-full text-center shadow-2xl relative overflow-hidden flex flex-col items-center">
+
+      <div
+        class="w-full flex items-center justify-between text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">
+        <span class="flex items-center gap-1"><span>📺</span> <span id="ui-ad-sponsored-badge">Sponsored
+            Ad</span></span>
+        <span id="ad-timer-countdown"
+          class="font-mono text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-600/40">5s</span>
+      </div>
+
+      <div
+        class="w-20 h-20 sm:w-24 sm:h-24 my-3 rounded-2xl bg-gradient-to-tr from-cyan-500/20 via-indigo-600/30 to-purple-600/20 border border-indigo-500/40 flex items-center justify-center text-4xl sm:text-5xl shadow-xl shadow-indigo-950/60 animate-pulse">
+        🎬
+      </div>
+
+      <h3 id="ui-ad-status-title" class="text-base sm:text-lg font-black text-slate-100 mb-1">
+        Sponsored Video Ad
+      </h3>
+      <p id="ui-ad-status-desc" class="text-xs text-slate-400 mb-4">
+        Reward will be credited automatically when finished.
+      </p>
+
+      <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800 mb-5">
+        <div id="ad-progress-bar"
+          class="h-full bg-gradient-to-r from-cyan-500 via-indigo-500 to-amber-400 w-0 transition-all duration-100 ease-linear">
+        </div>
+      </div>
+
+      <button id="btn-ad-claim" disabled
+        class="w-full py-3 bg-slate-800 text-slate-500 font-black rounded-xl text-xs sm:text-sm cursor-not-allowed transition duration-200">
+        Reward in 5s...
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 5: INSUFFICIENT COINS PROMPT
+       ========================================================================== -->
+  <div id="modal-insufficient-coins"
+    class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden animate-in fade-in duration-200">
+    <div
+      class="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 sm:p-6 max-w-xs w-full text-center shadow-2xl flex flex-col items-center">
+      <div class="text-4xl mb-2">🪙</div>
+      <h3 id="ui-insufficient-title" class="text-base font-black text-amber-300 mb-1">Insufficient Coins</h3>
+      <p id="ui-insufficient-desc" class="text-xs text-slate-300 mb-4">You need more coins to use this feature. Watch a
+        quick ad to get +100 coins now?</p>
+
+      <div class="w-full flex flex-col gap-2">
+        <button id="btn-insufficient-watch-ad"
+          class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+          <span>📺</span>
+          <span id="ui-insufficient-btn-watch">Watch Ad (+100 🪙)</span>
+        </button>
+        <button id="btn-insufficient-cancel"
+          class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 6: HOW TO PLAY / RULES (Fully Localized)
+       ========================================================================== -->
+  <div id="modal-rules"
+    class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
+    <div
+      class="bg-slate-900 border border-slate-700/80 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90dvh] flex flex-col justify-between overflow-hidden">
+
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <h2 id="modal-rules-title" class="text-base sm:text-xl font-black text-slate-100 flex items-center gap-2">
           <span>🧠</span> How to Play Super Tic-Tac-Toe
         </h2>
-        <button id="btn-close-rules-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition" aria-label="Close modal">
+        <button id="btn-close-rules-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition"
+          aria-label="Close modal">
           ✕
         </button>
       </div>
 
-      <!-- Rules Content & Fully Translated Visual Schematic -->
       <div class="overflow-y-auto pr-1 my-3 space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
-        
-        <!-- Interactive / Visual Directive Diagram -->
-        <div class="bg-slate-950/80 border border-indigo-500/40 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3">
-          <div class="grid grid-cols-3 gap-1 w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-slate-900 p-1 rounded-lg border border-slate-800">
+        <div
+          class="bg-slate-950/80 border border-indigo-500/40 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3">
+          <div
+            class="grid grid-cols-3 gap-1 w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-slate-900 p-1 rounded-lg border border-slate-800">
             <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">1</div>
             <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">2</div>
-            <div class="bg-cyan-500/30 border border-cyan-400 text-cyan-300 font-bold rounded flex items-center justify-center text-xs animate-pulse">X</div>
+            <div
+              class="bg-cyan-500/30 border border-cyan-400 text-cyan-300 font-bold rounded flex items-center justify-center text-xs animate-pulse">
+              X</div>
             <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">4</div>
             <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">5</div>
             <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">6</div>
@@ -459,81 +734,111 @@
           </div>
           <div class="text-[11px] sm:text-xs">
             <div id="rule-diagram-title" class="font-bold text-cyan-400 mb-0.5">⚡ The Golden Rule in action:</div>
-            <div id="rule-diagram-desc">Playing in the <strong class="text-cyan-300">top-right cell</strong> sends your opponent directly into the <strong class="text-indigo-400">top-right mini-board</strong>!</div>
+            <div id="rule-diagram-desc">Playing in the <strong class="text-cyan-300">top-right cell</strong> sends your
+              opponent directly into the <strong class="text-indigo-400">top-right mini-board</strong>!</div>
           </div>
         </div>
 
-        <!-- Rule Items -->
         <div class="space-y-2.5">
           <div class="flex items-start gap-2.5">
-            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">1</span>
+            <span
+              class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">1</span>
             <div>
               <div id="rule-item-1-title" class="font-bold text-slate-100">The 9x9 Concept</div>
-              <div id="rule-item-1-desc" class="text-slate-400 text-[11px] sm:text-xs">There are 9 mini-boards inside 1 giant macro-grid. You must think globally and locally simultaneously.</div>
+              <div id="rule-item-1-desc" class="text-slate-400 text-[11px] sm:text-xs">There are 9 mini-boards inside 1
+                giant macro-grid. You must think globally and locally simultaneously.</div>
             </div>
           </div>
 
           <div class="flex items-start gap-2.5">
-            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">2</span>
+            <span
+              class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">2</span>
             <div>
               <div id="rule-item-2-title" class="font-bold text-slate-100">The Golden Rule (Guiding)</div>
-              <div id="rule-item-2-desc" class="text-slate-400 text-[11px] sm:text-xs">Your move dictates which mini-board your rival MUST play in next. Always check where you are sending them!</div>
+              <div id="rule-item-2-desc" class="text-slate-400 text-[11px] sm:text-xs">Your move dictates which
+                mini-board your rival MUST play in next. Always check where you are sending them!</div>
             </div>
           </div>
 
           <div class="flex items-start gap-2.5">
-            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">3</span>
+            <span
+              class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">3</span>
             <div>
               <div id="rule-item-3-title" class="font-bold text-slate-100">Conquering Mini-Boards</div>
-              <div id="rule-item-3-desc" class="text-slate-400 text-[11px] sm:text-xs">Get 3 marks in a row inside any mini-board to claim that entire grid for your symbol.</div>
+              <div id="rule-item-3-desc" class="text-slate-400 text-[11px] sm:text-xs">Get 3 marks in a row inside any
+                mini-board to claim that entire grid for your symbol.</div>
             </div>
           </div>
 
           <div class="flex items-start gap-2.5">
-            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">4</span>
+            <span
+              class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">4</span>
             <div>
               <div id="rule-item-4-title" class="font-bold text-slate-100">Free Moves</div>
-              <div id="rule-item-4-desc" class="text-slate-400 text-[11px] sm:text-xs">If directed to a mini-board that is already won or completely tied, you gain a Free Move to play anywhere!</div>
+              <div id="rule-item-4-desc" class="text-slate-400 text-[11px] sm:text-xs">If directed to a mini-board that
+                is already won or completely tied, you gain a Free Move to play anywhere!</div>
             </div>
           </div>
 
           <div class="flex items-start gap-2.5">
-            <span class="w-6 h-6 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">🏆</span>
+            <span
+              class="w-6 h-6 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">🏆</span>
             <div>
               <div id="rule-item-5-title" class="font-bold text-emerald-300">Winning the Match</div>
-              <div id="rule-item-5-desc" class="text-slate-400 text-[11px] sm:text-xs">Win 3 mini-boards in a row (horizontal, vertical, or diagonal) across the giant macro-board to win!</div>
+              <div id="rule-item-5-desc" class="text-slate-400 text-[11px] sm:text-xs">Win 3 mini-boards in a row
+                (horizontal, vertical, or diagonal) across the giant macro-board to win!</div>
             </div>
           </div>
         </div>
 
       </div>
 
-      <button id="btn-close-rules" class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-xs sm:text-sm">
+      <button id="btn-close-rules"
+        class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-xs sm:text-sm">
         Got it! Let's Play
       </button>
     </div>
   </div>
 
   <!-- ==========================================================================
-       MODAL 4: GAME OVER / WINNER MODAL (Clean: No "View Board" button)
+       MODAL 7: GAME OVER / WINNER MODAL
        ========================================================================== -->
-  <div id="modal-winner" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden animate-in fade-in zoom-in-95 duration-200">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
-      <div id="winner-glow-bg" class="absolute -top-16 left-1/2 -translate-x-1/2 w-40 h-40 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none"></div>
+  <div id="modal-winner"
+    class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden animate-in fade-in zoom-in-95 duration-200">
+    <div
+      class="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
+      <div id="winner-glow-bg"
+        class="absolute -top-16 left-1/2 -translate-x-1/2 w-40 h-40 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none">
+      </div>
 
       <div id="winner-icon" class="text-6xl sm:text-7xl mb-2 animate-bounce">🏆</div>
-      <h2 id="winner-title" class="text-2xl sm:text-3xl font-black mb-1 text-cyan-400 glow-x">
+      <h2 id="winner-title" class="text-2xl sm:text-3xl font-black mb-1 glow-skin-x">
         VICTORY!
       </h2>
-      <p id="winner-desc" class="text-slate-300 text-xs sm:text-sm mb-6 leading-relaxed">
+      <p id="winner-desc" class="text-slate-300 text-xs sm:text-sm mb-4 leading-relaxed">
         Player X conquered 3 mini-boards in a row!
       </p>
 
+      <div id="winner-reward-container"
+        class="mb-5 bg-amber-950/50 border border-amber-500/40 rounded-xl p-2.5 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-lg">🪙</span>
+          <span id="winner-reward-text" class="text-xs font-black text-amber-300 font-mono">+35 Coins Earned!</span>
+        </div>
+        <button id="btn-winner-double-reward"
+          class="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-lg text-xs shadow-md transition active:scale-95 flex items-center gap-1">
+          <span>📺</span>
+          <span id="ui-winner-btn-double">Double (2x 🪙)</span>
+        </button>
+      </div>
+
       <div class="flex flex-col gap-2.5">
-        <button id="btn-modal-restart" class="w-full py-3.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 hover:from-indigo-400 hover:to-pink-500 text-white font-extrabold rounded-xl shadow-lg transition transform active:scale-95 text-sm sm:text-base">
+        <button id="btn-modal-restart"
+          class="w-full py-3.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 hover:from-indigo-400 hover:to-pink-500 text-white font-extrabold rounded-xl shadow-lg transition transform active:scale-95 text-sm sm:text-base">
           🎮 Play Again
         </button>
-        <button id="btn-modal-to-menu" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 text-xs sm:text-sm">
+        <button id="btn-modal-to-menu"
+          class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 text-xs sm:text-sm">
           🏠 Main Menu
         </button>
       </div>
@@ -542,8 +847,7 @@
 
   <!-- ==========================================================================
        LOGIC & JAVASCRIPT ENGINE
-       ========================================================================== */
-  -->
+       ========================================================================== -->
   <script>
     /* ==========================================================================
        1. AUDIO ENGINE (Web Audio API - Zero External Dependencies)
@@ -593,6 +897,73 @@
         gain.connect(this.ctx.destination);
         osc.start(now);
         osc.stop(now + 0.08);
+      }
+
+      playCoin() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        [987.77, 1318.51].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          const startTime = now + idx * 0.08;
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.2, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.3);
+        });
+      }
+
+      playPowerup() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        [440, 659.25, 880, 1174.66].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          const startTime = now + idx * 0.06;
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.18, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.25);
+        });
+      }
+
+      playUndo() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.15);
+
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
       }
 
       playMiniWin() {
@@ -712,7 +1083,212 @@
     const sound = new SoundEngine();
 
     /* ==========================================================================
-       2. MULTILINGUAL SUPPORT (i18n)
+       2. COSMETIC SKINS DEFINITIONS (7 MARKERS + 7 GRID THEMES)
+       ========================================================================== */
+    const MARKER_SKINS = {
+      'neon-cyber': {
+        id: 'neon-cyber',
+        nameKey: 'skinNeonCyber',
+        price: 0,
+        xColor: '#38bdf8',
+        xGlow: '0 0 12px rgba(56, 189, 248, 0.85)',
+        xBadge: 'border-cyan-500/70 bg-cyan-950/40 text-cyan-400',
+        oColor: '#fb7185',
+        oGlow: '0 0 12px rgba(251, 113, 133, 0.85)',
+        oBadge: 'border-rose-500/70 bg-rose-950/40 text-rose-400',
+        xOverlayClass: 'text-cyan-400 border-cyan-500/70',
+        oOverlayClass: 'text-rose-400 border-rose-500/70'
+      },
+      'fire-ice': {
+        id: 'fire-ice',
+        nameKey: 'skinFireIce',
+        price: 200,
+        xColor: '#f97316',
+        xGlow: '0 0 14px rgba(249, 115, 22, 0.95)',
+        xBadge: 'border-orange-500/70 bg-orange-950/40 text-orange-400',
+        oColor: '#06b6d4',
+        oGlow: '0 0 14px rgba(6, 182, 212, 0.95)',
+        oBadge: 'border-cyan-400/70 bg-cyan-950/40 text-cyan-300',
+        xOverlayClass: 'text-orange-400 border-orange-500/70',
+        oOverlayClass: 'text-cyan-300 border-cyan-400/70'
+      },
+      'supernova-gold': {
+        id: 'supernova-gold',
+        nameKey: 'skinSupernova',
+        price: 300,
+        xColor: '#ff5964',
+        xGlow: '0 0 16px rgba(255, 89, 100, 0.95)',
+        xBadge: 'border-rose-400/80 bg-rose-950/40 text-rose-300',
+        oColor: '#ffd166',
+        oGlow: '0 0 16px rgba(255, 209, 102, 0.95)',
+        oBadge: 'border-amber-400/80 bg-amber-950/40 text-amber-300',
+        xOverlayClass: 'text-rose-400 border-rose-400/80',
+        oOverlayClass: 'text-amber-300 border-amber-400/80'
+      },
+      'toxic-hazard': {
+        id: 'toxic-hazard',
+        nameKey: 'skinBiohazard',
+        price: 350,
+        xColor: '#a3e635',
+        xGlow: '0 0 14px rgba(163, 230, 53, 0.95)',
+        xBadge: 'border-lime-500/70 bg-lime-950/40 text-lime-400',
+        oColor: '#facc15',
+        oGlow: '0 0 14px rgba(250, 204, 21, 0.95)',
+        oBadge: 'border-yellow-500/70 bg-yellow-950/40 text-yellow-400',
+        xOverlayClass: 'text-lime-400 border-lime-500/70',
+        oOverlayClass: 'text-yellow-400 border-yellow-500/70'
+      },
+      'matrix-green': {
+        id: 'matrix-green',
+        nameKey: 'skinMatrix',
+        price: 400,
+        xColor: '#4ade80',
+        xGlow: '0 0 14px rgba(74, 222, 128, 0.95)',
+        xBadge: 'border-emerald-500/70 bg-emerald-950/40 text-emerald-400',
+        oColor: '#22c55e',
+        oGlow: '0 0 14px rgba(34, 197, 94, 0.95)',
+        oBadge: 'border-green-500/70 bg-green-950/40 text-green-400',
+        xOverlayClass: 'text-emerald-400 border-emerald-500/70',
+        oOverlayClass: 'text-green-400 border-green-500/70'
+      },
+      'stealth-monochrome': {
+        id: 'stealth-monochrome',
+        nameKey: 'skinTitanium',
+        price: 500,
+        xColor: '#f8fafc',
+        xGlow: '0 0 14px rgba(248, 250, 252, 0.9)',
+        xBadge: 'border-slate-300/70 bg-slate-800/40 text-slate-100',
+        oColor: '#94a3b8',
+        oGlow: '0 0 14px rgba(148, 163, 184, 0.85)',
+        oBadge: 'border-slate-500/70 bg-slate-900/60 text-slate-300',
+        xOverlayClass: 'text-slate-100 border-slate-300/70',
+        oOverlayClass: 'text-slate-300 border-slate-500/70'
+      },
+      'golden-prestige': {
+        id: 'golden-prestige',
+        nameKey: 'skinGolden',
+        price: 1000,
+        xColor: '#fbbf24',
+        xGlow: '0 0 14px rgba(251, 191, 36, 0.95)',
+        xBadge: 'border-amber-500/70 bg-amber-950/40 text-amber-400',
+        oColor: '#f59e0b',
+        oGlow: '0 0 14px rgba(245, 158, 11, 0.95)',
+        oBadge: 'border-yellow-500/70 bg-yellow-950/40 text-yellow-400',
+        xOverlayClass: 'text-amber-400 border-amber-500/70',
+        oOverlayClass: 'text-yellow-400 border-yellow-500/70'
+      }
+    };
+
+    const GRID_SKINS = {
+      'midnight-obsidian': {
+        id: 'midnight-obsidian',
+        nameKey: 'gridMidnightObsidian',
+        price: 0,
+        macroBorder: '#334155',
+        macroGlow: '0 0 25px rgba(99, 102, 241, 0.25)',
+        macroBg: 'rgba(15, 23, 42, 0.95)',
+        miniBorder: '#1e293b',
+        miniBg: '#020617',
+        cellBg: 'rgba(30, 41, 59, 0.8)',
+        cellBorder: 'rgba(51, 65, 85, 0.7)',
+        cellHover: 'rgba(51, 65, 85, 0.95)',
+        activeBorder: '#818cf8',
+        activeGlow: 'rgba(99, 102, 241, 0.55)'
+      },
+      'toxic-hazard-grid': {
+        id: 'toxic-hazard-grid',
+        nameKey: 'gridLaboratory',
+        price: 200,
+        macroBorder: '#84cc16',
+        macroGlow: '0 0 35px rgba(132, 204, 22, 0.45)',
+        macroBg: 'rgba(19, 42, 6, 0.95)',
+        miniBorder: '#4d7c0f',
+        miniBg: 'rgba(5, 20, 3, 0.98)',
+        cellBg: 'rgba(26, 60, 10, 0.85)',
+        cellBorder: 'rgba(132, 204, 22, 0.45)',
+        cellHover: 'rgba(54, 110, 18, 0.95)',
+        activeBorder: '#a3e635',
+        activeGlow: 'rgba(163, 230, 53, 0.75)'
+      },
+      'cyberpunk-neon': {
+        id: 'cyberpunk-neon',
+        nameKey: 'gridCyberpunk',
+        price: 300,
+        macroBorder: '#d946ef',
+        macroGlow: '0 0 35px rgba(217, 70, 239, 0.45)',
+        macroBg: 'rgba(35, 10, 45, 0.95)',
+        miniBorder: '#86198f',
+        miniBg: 'rgba(18, 5, 25, 0.98)',
+        cellBg: 'rgba(55, 15, 68, 0.85)',
+        cellBorder: 'rgba(217, 70, 239, 0.45)',
+        cellHover: 'rgba(90, 20, 110, 0.95)',
+        activeBorder: '#f0abfc',
+        activeGlow: 'rgba(217, 70, 239, 0.75)'
+      },
+      'solar-magma': {
+        id: 'solar-magma',
+        nameKey: 'gridMagma',
+        price: 350,
+        macroBorder: '#f97316',
+        macroGlow: '0 0 35px rgba(249, 115, 22, 0.45)',
+        macroBg: 'rgba(45, 15, 5, 0.95)',
+        miniBorder: '#9a3412',
+        miniBg: 'rgba(25, 7, 3, 0.98)',
+        cellBg: 'rgba(68, 22, 10, 0.85)',
+        cellBorder: 'rgba(249, 115, 22, 0.45)',
+        cellHover: 'rgba(110, 35, 15, 0.95)',
+        activeBorder: '#fdba74',
+        activeGlow: 'rgba(249, 115, 22, 0.75)'
+      },
+      'deep-space': {
+        id: 'deep-space',
+        nameKey: 'gridNebula',
+        price: 400,
+        macroBorder: '#06b6d4',
+        macroGlow: '0 0 35px rgba(6, 182, 212, 0.45)',
+        macroBg: 'rgba(8, 25, 45, 0.95)',
+        miniBorder: '#155e75',
+        miniBg: 'rgba(4, 15, 30, 0.98)',
+        cellBg: 'rgba(12, 38, 68, 0.85)',
+        cellBorder: 'rgba(6, 182, 212, 0.45)',
+        cellHover: 'rgba(20, 60, 100, 0.95)',
+        activeBorder: '#67e8f9',
+        activeGlow: 'rgba(6, 182, 212, 0.75)'
+      },
+      'crimson-sanctuary': {
+        id: 'crimson-sanctuary',
+        nameKey: 'gridSanctuary',
+        price: 500,
+        macroBorder: '#ef4444',
+        macroGlow: '0 0 35px rgba(239, 68, 68, 0.45)',
+        macroBg: 'rgba(45, 10, 10, 0.95)',
+        miniBorder: '#991b1b',
+        miniBg: 'rgba(25, 5, 5, 0.98)',
+        cellBg: 'rgba(68, 15, 15, 0.85)',
+        cellBorder: 'rgba(239, 68, 68, 0.45)',
+        cellHover: 'rgba(110, 25, 25, 0.95)',
+        activeBorder: '#fca5a5',
+        activeGlow: 'rgba(239, 68, 68, 0.75)'
+      },
+      'golden-hyperdrive': {
+        id: 'golden-hyperdrive',
+        nameKey: 'gridGolden',
+        price: 1000,
+        macroBorder: '#fbbf24',
+        macroGlow: '0 0 40px rgba(251, 191, 36, 0.55)',
+        macroBg: 'rgba(40, 28, 5, 0.95)',
+        miniBorder: '#b45309',
+        miniBg: 'rgba(25, 16, 3, 0.98)',
+        cellBg: 'rgba(65, 45, 10, 0.85)',
+        cellBorder: 'rgba(251, 191, 36, 0.45)',
+        cellHover: 'rgba(105, 75, 18, 0.95)',
+        activeBorder: '#fde68a',
+        activeGlow: 'rgba(251, 191, 36, 0.85)'
+      }
+    };
+
+    /* ==========================================================================
+       3. MULTILINGUAL SUPPORT (i18n)
        ========================================================================== */
     const I18N = {
       en: {
@@ -723,6 +1299,10 @@
         settingsTitle: 'Settings',
         settingsBtn: 'Settings',
         rulesBtn: 'Rules',
+        shopBtn: 'Shop',
+        shopTitle: 'Cosmetics Shop',
+        tabMarkers: 'Markers (X & O)',
+        tabGrid: 'Board / Grid',
         selectMode: '1. Select Game Mode',
         selectDiff: '2. AI Difficulty Level',
         modeSoloTitle: 'Solo vs AI',
@@ -736,7 +1316,50 @@
         startMatch: 'START MATCH',
         footerTip: '💡 Think 2 moves ahead to dominate the grid!',
         doneBtn: 'Done',
-        
+        closeBtn: 'Close',
+
+        // Power-ups & Economy
+        coins: 'Coins',
+        undo: 'Undo',
+        hint: 'Hint',
+        buy: 'Buy for {price} 🪙',
+        equip: 'Equip',
+        equipped: 'Equipped',
+        watchAdBtn: '+100 🪙 (Watch Ad)',
+        needMoreCoinsTitle: 'Need more coins?',
+        needMoreCoinsDesc: 'Watch a 5s ad to earn instant coins!',
+        insufficientCoinsTitle: 'Insufficient Coins',
+        insufficientCoinsDesc: 'You need more coins to use this feature. Watch a quick ad to get +100 coins now?',
+        cancel: 'Cancel',
+        adSponsored: 'Sponsored Ad',
+        adStatusTitle: 'Sponsored Video Ad',
+        adStatusDesc: 'Reward will be credited automatically when finished.',
+        rewardIn: 'Reward in {s}s...',
+        claimReward: '🎁 Claim Reward!',
+        doubleRewardBtn: 'Double (2x 🪙)',
+        coinsEarned: '+{amount} Coins Earned!',
+        rewardDoubledText: '+{amount} Coins Doubled!',
+
+        // Marker Skins
+        skinNeonCyber: 'Default',
+        skinDefault: 'Default',
+        skinFireIce: 'Fire & Ice',
+        skinSupernova: 'Supernova',
+        skinBiohazard: 'Biohazard',
+        skinMatrix: 'Matrix',
+        skinTitanium: 'Titanium',
+        skinGolden: 'Golden',
+
+        // Grid Skins
+        gridMidnightObsidian: 'Default',
+        gridDefault: 'Default',
+        gridLaboratory: 'Laboratory',
+        gridCyberpunk: 'Cyberpunk',
+        gridMagma: 'Magma',
+        gridNebula: 'Nebula',
+        gridSanctuary: 'Sanctuary',
+        gridGolden: 'Golden',
+
         // In-game & Pause
         pauseMenu: 'Menu',
         gamePaused: 'Game Paused',
@@ -766,7 +1389,7 @@
           'Bottom-Left', 'Bottom-Center', 'Bottom-Right'
         ],
 
-        // Rules Modal & Visual Diagram
+        // Rules Modal
         howToPlayTitle: 'How to Play Super Tic-Tac-Toe',
         ruleDiagramTitle: '⚡ The Golden Rule in action:',
         ruleDiagramDesc: 'Playing in the <strong class="text-cyan-300">top-right cell</strong> sends your opponent directly into the <strong class="text-indigo-400">top-right mini-board</strong>!',
@@ -799,6 +1422,10 @@
         settingsTitle: 'Configurações',
         settingsBtn: 'Ajustes',
         rulesBtn: 'Regras',
+        shopBtn: 'Loja',
+        shopTitle: 'Loja de Cosméticos',
+        tabMarkers: 'Marcadores (X e O)',
+        tabGrid: 'Grade / Tabuleiro',
         selectMode: '1. Escolha o Modo de Jogo',
         selectDiff: '2. Nível de Dificuldade da IA',
         modeSoloTitle: 'Solo vs IA',
@@ -812,7 +1439,50 @@
         startMatch: 'INICIAR PARTIDA',
         footerTip: '💡 Pense 2 jogadas à frente para dominar o tabuleiro!',
         doneBtn: 'Concluído',
-        
+        closeBtn: 'Fechar',
+
+        // Power-ups & Economy
+        coins: 'Moedas',
+        undo: 'Desfazer',
+        hint: 'Dica',
+        buy: 'Comprar por {price} 🪙',
+        equip: 'Equipar',
+        equipped: 'Equipado',
+        watchAdBtn: '+100 🪙 (Ver Anúncio)',
+        needMoreCoinsTitle: 'Precisa de mais moedas?',
+        needMoreCoinsDesc: 'Assista a um vídeo de 5s para ganhar moedas grátis!',
+        insufficientCoinsTitle: 'Moedas Insuficientes',
+        insufficientCoinsDesc: 'Você precisa de mais moedas. Deseja assistir a um anúncio rápido para ganhar +100 moedas agora?',
+        cancel: 'Cancelar',
+        adSponsored: 'Anúncio Patrocinado',
+        adStatusTitle: 'Vídeo Patrocinado',
+        adStatusDesc: 'Sua recompensa será liberada automaticamente ao terminar.',
+        rewardIn: 'Recompensa em {s}s...',
+        claimReward: '🎁 Coletar Recompensa!',
+        doubleRewardBtn: 'Dobrar Moedas (2x 🪙)',
+        coinsEarned: '+{amount} Moedas Ganhas!',
+        rewardDoubledText: '+{amount} Moedas Dobradas!',
+
+        // Marker Skins
+        skinNeonCyber: 'Padrão',
+        skinDefault: 'Padrão',
+        skinFireIce: 'Fogo e Gelo',
+        skinSupernova: 'Supernova',
+        skinBiohazard: 'Biohazard',
+        skinMatrix: 'Matrix',
+        skinTitanium: 'Titânio',
+        skinGolden: 'Dourado',
+
+        // Grid Skins
+        gridMidnightObsidian: 'Padrão',
+        gridDefault: 'Padrão',
+        gridLaboratory: 'Laboratório',
+        gridCyberpunk: 'Cyberpunk',
+        gridMagma: 'Magma',
+        gridNebula: 'Nebulosa',
+        gridSanctuary: 'Santuário',
+        gridGolden: 'Dourado',
+
         // In-game & Pause
         pauseMenu: 'Menu',
         gamePaused: 'Jogo Pausado',
@@ -842,7 +1512,7 @@
           'Baixo-Esquerda', 'Baixo-Centro', 'Baixo-Direita'
         ],
 
-        // Rules Modal & Visual Diagram
+        // Rules Modal
         howToPlayTitle: 'Como Jogar o Jogo da Velha Supremo',
         ruleDiagramTitle: '⚡ A Regra de Ouro em ação:',
         ruleDiagramDesc: 'Jogar na <strong class="text-cyan-300">célula superior direita</strong> envia seu oponente diretamente para o <strong class="text-indigo-400">mini-tabuleiro superior direito</strong>!',
@@ -875,11 +1545,15 @@
         settingsTitle: 'Configuración',
         settingsBtn: 'Ajustes',
         rulesBtn: 'Reglas',
+        shopBtn: 'Tienda',
+        shopTitle: 'Tienda de Cosméticos',
+        tabMarkers: 'Fichas (X y O)',
+        tabGrid: 'Tablero / Cuadrícula',
         selectMode: '1. Selecciona Modo de Juego',
         selectDiff: '2. Dificultad de la IA',
         modeSoloTitle: 'Solo vs IA',
         modeSoloDesc: 'Tú (X) contra el Bot (O)',
-        modePvpTitle: '2 Jugadores (Dúo)',
+        modePvpTitle: '2 Jogadores (Dúo)',
         modePvpDesc: 'Partida local compartida',
         diffEasy: 'Fácil',
         diffMed: 'Medio',
@@ -888,7 +1562,50 @@
         startMatch: 'INICIAR PARTIDA',
         footerTip: '💡 ¡Piensa 2 jugadas por delante para dominar!',
         doneBtn: 'Listo',
-        
+        closeBtn: 'Cerrar',
+
+        // Power-ups & Economy
+        coins: 'Monedas',
+        undo: 'Deshacer',
+        hint: 'Pista',
+        buy: 'Comprar por {price} 🪙',
+        equip: 'Equipar',
+        equipped: 'Equipado',
+        watchAdBtn: '+100 🪙 (Ver Anuncio)',
+        needMoreCoinsTitle: '¿Necesitas más monedas?',
+        needMoreCoinsDesc: '¡Mira un video de 5s para ganar monedas instantáneas!',
+        insufficientCoinsTitle: 'Monedas Insuficientes',
+        insufficientCoinsDesc: 'Necesitas más monedas. ¿Ver un anuncio para ganar +100 monedas ahora?',
+        cancel: 'Cancelar',
+        adSponsored: 'Anuncio Patrocinado',
+        adStatusTitle: 'Video Patrocinado',
+        adStatusDesc: 'Tu recompensa se acreditará automáticamente al terminar.',
+        rewardIn: 'Recompensa en {s}s...',
+        claimReward: '🎁 ¡Reclamar Recompensa!',
+        doubleRewardBtn: 'Duplicar Monedas (2x 🪙)',
+        coinsEarned: '¡+{amount} Monedas Ganadas!',
+        rewardDoubledText: '¡+{amount} Monedas Duplicadas!',
+
+        // Marker Skins
+        skinNeonCyber: 'Por defecto',
+        skinDefault: 'Por defecto',
+        skinFireIce: 'Fuego y Hielo',
+        skinSupernova: 'Supernova',
+        skinBiohazard: 'Biohazard',
+        skinMatrix: 'Matrix',
+        skinTitanium: 'Titanio',
+        skinGolden: 'Dorado',
+
+        // Grid Skins
+        gridMidnightObsidian: 'Por defecto',
+        gridDefault: 'Por defecto',
+        gridLaboratory: 'Laboratorio',
+        gridCyberpunk: 'Cyberpunk',
+        gridMagma: 'Magma',
+        gridNebula: 'Nebulosa',
+        gridSanctuary: 'Santuario',
+        gridGolden: 'Dorado',
+
         // In-game & Pause
         pauseMenu: 'Menú',
         gamePaused: 'Juego Pausado',
@@ -918,7 +1635,7 @@
           'Abajo-Izquierda', 'Abajo-Centro', 'Abajo-Derecha'
         ],
 
-        // Rules Modal & Visual Diagram
+        // Rules Modal
         howToPlayTitle: 'Cómo Jugar al Súper Tres en Raya',
         ruleDiagramTitle: '⚡ La Regla de Oro en acción:',
         ruleDiagramDesc: '¡Jugar en la <strong class="text-cyan-300">casilla superior derecha</strong> envía a tu oponente al <strong class="text-indigo-400">mini-tablero superior derecho</strong>!',
@@ -951,6 +1668,10 @@
         settingsTitle: 'सेटिंग्स',
         settingsBtn: 'सेटिंग्स',
         rulesBtn: 'नियम',
+        shopBtn: 'दुकान',
+        shopTitle: 'कॉस्मेटिक्स दुकान',
+        tabMarkers: 'मार्कर (X और O)',
+        tabGrid: 'बोर्ड / ग्रिड',
         selectMode: '1. गेम मोड चुनें',
         selectDiff: '2. AI कठिनाई स्तर',
         modeSoloTitle: 'एकल बनाम AI',
@@ -964,7 +1685,49 @@
         startMatch: 'मैच शुरू करें',
         footerTip: '💡 ग्रिड पर हावी होने के लिए 2 चाल आगे सोचें!',
         doneBtn: 'संपन्न',
-        
+        closeBtn: 'बंद करें',
+
+        // Power-ups & Economy
+        coins: 'सिक्के',
+        undo: 'पूर्ववत',
+        hint: 'संकेत',
+        buy: '{price} 🪙 में खरीदें',
+        equip: 'सुसज्जित करें',
+        equipped: 'सक्रिय है',
+        watchAdBtn: '+100 🪙 (विज्ञापन देखें)',
+        needMoreCoinsTitle: 'और सिक्के चाहिए?',
+        needMoreCoinsDesc: 'तुरंत सिक्के कमाने के लिए 5 सेकंड का विज्ञापन देखें!',
+        insufficientCoinsTitle: 'अपर्याप्त सिक्के',
+        insufficientCoinsDesc: 'आपको और सिक्कों की आवश्यकता है। अभी +100 सिक्के पाने के लिए विज्ञापन देखें?',
+        cancel: 'रद्द करें',
+        adSponsored: 'प्रायोजित विज्ञापन',
+        adStatusTitle: 'प्रायोजित वीडियो विज्ञापन',
+        adStatusDesc: 'समाप्त होने पर आपका इनाम स्वचालित रूप से जुड़ जाएगा।',
+        rewardIn: '{s}s में इनाम...',
+        claimReward: '🎁 इनाम प्राप्त करें!',
+        doubleRewardBtn: 'दोगुना इनाम (2x 🪙)',
+        coinsEarned: '+{amount} सिक्के अर्जित!',
+        rewardDoubledText: '+{amount} सिक्के दोगुने हुए!',
+
+        // Skins
+        skinNeonCyber: 'डिफ़ॉल्ट',
+        skinDefault: 'डिफ़ॉल्ट',
+        skinFireIce: 'आग और बर्फ',
+        skinSupernova: 'सुपरनोवा',
+        skinBiohazard: 'बायोहाज़र्ड',
+        skinMatrix: 'मैट्रिक्स',
+        skinTitanium: 'टाइटेनियम',
+        skinGolden: 'गोल्डन',
+
+        gridMidnightObsidian: 'डिफ़ॉल्ट',
+        gridDefault: 'डिफ़ॉल्ट',
+        gridLaboratory: 'प्रयोगशाला',
+        gridCyberpunk: 'साइबरपंक',
+        gridMagma: 'मैग्मा',
+        gridNebula: 'नेबुला',
+        gridSanctuary: 'अभयारण्य',
+        gridGolden: 'गोल्डन',
+
         // In-game & Pause
         pauseMenu: 'मेनू',
         gamePaused: 'खेल रुका हुआ है',
@@ -994,7 +1757,7 @@
           'नीचे-बाएं', 'नीचे-मध्य', 'नीचे-दाएं'
         ],
 
-        // Rules Modal & Visual Diagram
+        // Rules Modal
         howToPlayTitle: 'सुपर टिक-टैक-टो कैसे खेलें',
         ruleDiagramTitle: '⚡ स्वर्णिम नियम क्रिया में:',
         ruleDiagramDesc: '<strong>ऊपर-दाएं कोशिका</strong> में खेलने से आपका प्रतिद्वंद्वी सीधे <strong>ऊपर-दाएं मिनी-बोर्ड</strong> में पहुंच जाता है!',
@@ -1027,6 +1790,10 @@
         settingsTitle: '设置',
         settingsBtn: '设置',
         rulesBtn: '规则',
+        shopBtn: '商城',
+        shopTitle: '外观与棋盘商城',
+        tabMarkers: '棋子皮肤 (X & O)',
+        tabGrid: '棋盘主题 (Grid)',
         selectMode: '1. 选择游戏模式',
         selectDiff: '2. AI 战术难度',
         modeSoloTitle: '单人 vs AI',
@@ -1040,7 +1807,50 @@
         startMatch: '进入游戏对决',
         footerTip: '💡 深谋两步，统领全盘战局！',
         doneBtn: '完成',
-        
+        closeBtn: '关闭',
+
+        // Power-ups & Economy
+        coins: '金币',
+        undo: '悔棋',
+        hint: '提示',
+        buy: '购买 {price} 🪙',
+        equip: '使用',
+        equipped: '已佩戴',
+        watchAdBtn: '+100 🪙 (看视频)',
+        needMoreCoinsTitle: '金币不足？',
+        needMoreCoinsDesc: '观看 5 秒广告即可立即获得金币奖励！',
+        insufficientCoinsTitle: '金币不足',
+        insufficientCoinsDesc: '金币不够啦！是否立即观看一个短视频获取 +100 金币？',
+        cancel: '取消',
+        adSponsored: '赞助广告',
+        adStatusTitle: '赞助视频广告',
+        adStatusDesc: '视频结束后将自动为您发放金币奖励。',
+        rewardIn: '{s}秒后发放奖励...',
+        claimReward: '🎁 领取奖励！',
+        doubleRewardBtn: '金币翻倍 (2x 🪙)',
+        coinsEarned: '获得 +{amount} 金币！',
+        rewardDoubledText: '成功翻倍 +{amount} 金币！',
+
+        // Marker Skins
+        skinNeonCyber: '默认',
+        skinDefault: '默认',
+        skinFireIce: '烈焰寒冰',
+        skinSupernova: '超新星',
+        skinBiohazard: '生化危机',
+        skinMatrix: '代码矩阵',
+        skinTitanium: '钛金',
+        skinGolden: '黄金',
+
+        // Grid Skins
+        gridMidnightObsidian: '默认',
+        gridDefault: '默认',
+        gridLaboratory: '实验室',
+        gridCyberpunk: '赛博朋克',
+        gridMagma: '熔岩',
+        gridNebula: '星云',
+        gridSanctuary: '圣殿',
+        gridGolden: '黄金',
+
         // In-game & Pause
         pauseMenu: '菜单',
         gamePaused: '对决已暂停',
@@ -1070,7 +1880,7 @@
           '左下', '中下', '右下'
         ],
 
-        // Rules Modal & Visual Diagram
+        // Rules Modal
         howToPlayTitle: '超级井字棋 游戏规则',
         ruleDiagramTitle: '⚡ 黄金引导规则演示:',
         ruleDiagramDesc: '在<strong class="text-cyan-300">右上角格子</strong>落子，将强制对手直接传送至<strong class="text-indigo-400">右上角微型棋盘</strong>！',
@@ -1098,12 +1908,12 @@
     };
 
     /* ==========================================================================
-       3. GAME STATE & PREFERENCES
+       4. GAME STATE & ECONOMY STORAGE
        ========================================================================== */
     const WIN_COMBOS = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-      [0, 4, 8], [2, 4, 6]             // Diagonals
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
     ];
 
     const STORAGE_KEY_LANG = 'super_ttt_lang';
@@ -1111,14 +1921,57 @@
     const STORAGE_KEY_DIFF = 'super_ttt_diff';
     const STORAGE_KEY_SOUND = 'super_ttt_sound';
     const STORAGE_KEY_SCORES = 'super_ttt_scores';
+    const STORAGE_KEY_COINS = 'super_ttt_coins';
+    const STORAGE_KEY_SKIN = 'super_ttt_equipped_skin';
+    const STORAGE_KEY_UNLOCKED = 'super_ttt_unlocked_skins';
+    const STORAGE_KEY_GRID = 'super_ttt_equipped_grid';
+    const STORAGE_KEY_UNLOCKED_GRIDS = 'super_ttt_unlocked_grids';
 
-    let currentLang = localStorage.getItem(STORAGE_KEY_LANG) || 'en';
-    if (!I18N[currentLang]) currentLang = 'en';
+    // Preferences (Default to pt)
+    let currentLang = localStorage.getItem(STORAGE_KEY_LANG) || 'pt';
+    if (!I18N[currentLang]) currentLang = 'pt';
 
     let gameMode = localStorage.getItem(STORAGE_KEY_MODE) || 'solo';
     let difficulty = localStorage.getItem(STORAGE_KEY_DIFF) || 'hard';
     let soundEnabled = localStorage.getItem(STORAGE_KEY_SOUND) !== 'false';
     sound.enabled = soundEnabled;
+
+    // Economy: 100 welcome coins
+    let coins = parseInt(localStorage.getItem(STORAGE_KEY_COINS), 10);
+    if (isNaN(coins)) {
+      coins = 100;
+      localStorage.setItem(STORAGE_KEY_COINS, coins);
+    }
+
+    // Cosmetics: Markers
+    let equippedSkinId = localStorage.getItem(STORAGE_KEY_SKIN) || 'neon-cyber';
+    if (!MARKER_SKINS[equippedSkinId]) equippedSkinId = 'neon-cyber';
+
+    let unlockedSkins = [];
+    try {
+      unlockedSkins = JSON.parse(localStorage.getItem(STORAGE_KEY_UNLOCKED));
+      if (!Array.isArray(unlockedSkins) || !unlockedSkins.includes('neon-cyber')) {
+        unlockedSkins = ['neon-cyber'];
+      }
+    } catch (e) {
+      unlockedSkins = ['neon-cyber'];
+    }
+
+    // Cosmetics: Grid / Arena Themes
+    let equippedGridId = localStorage.getItem(STORAGE_KEY_GRID) || 'midnight-obsidian';
+    if (!GRID_SKINS[equippedGridId]) equippedGridId = 'midnight-obsidian';
+
+    let unlockedGrids = [];
+    try {
+      unlockedGrids = JSON.parse(localStorage.getItem(STORAGE_KEY_UNLOCKED_GRIDS));
+      if (!Array.isArray(unlockedGrids) || !unlockedGrids.includes('midnight-obsidian')) {
+        unlockedGrids = ['midnight-obsidian'];
+      }
+    } catch (e) {
+      unlockedGrids = ['midnight-obsidian'];
+    }
+
+    let activeShopTab = 'markers'; // 'markers' or 'grid'
 
     let savedScores = {
       solo: { player: 0, ai: 0 },
@@ -1129,33 +1982,42 @@
       if (parsedScores && parsedScores.solo && parsedScores.pvp) {
         savedScores = parsedScores;
       }
-    } catch (e) {
-      // defaults
-    }
+    } catch (e) { }
 
-    // Active Match State
+    // Match State & Undo History
     let currentPlayer = 'X';
     let activeBoardIndex = null;
     let boards = Array(9).fill(null).map(() => Array(9).fill(''));
     let macroBoard = Array(9).fill('');
     let winner = null;
     let isAiThinking = false;
+    let matchEarnedCoins = 0;
+    let rewardDoubled = false;
+    let activeHintCell = null;
+    let moveHistory = [];
 
     /* ==========================================================================
-       4. DOM REFERENCES
+       5. DOM REFERENCES
        ========================================================================== */
     const el = {
-      // Screens
       screenMenu: document.getElementById('screen-menu'),
       screenGame: document.getElementById('screen-game'),
+
+      // Top Coins Badges
+      menuCoinsAmount: document.getElementById('menu-coins-amount'),
+      gameCoinsAmount: document.getElementById('game-coins-amount'),
+      shopCoinsAmount: document.getElementById('shop-coins-amount'),
+      btnMenuCoins: document.getElementById('btn-menu-coins'),
+      gameCoinsBadge: document.getElementById('game-coins-badge'),
 
       // Menu Elements
       uiMenuTitle: document.getElementById('ui-menu-title'),
       uiMenuSubtitle: document.getElementById('ui-menu-subtitle'),
       btnMenuSettings: document.getElementById('btn-menu-settings'),
-      uiMenuBtnSettings: document.getElementById('ui-menu-btn-settings'),
       btnMenuRules: document.getElementById('btn-menu-rules'),
       uiMenuBtnRules: document.getElementById('ui-menu-btn-rules'),
+      btnMenuShop: document.getElementById('btn-menu-shop'),
+      uiMenuBtnShop: document.getElementById('ui-menu-btn-shop'),
       uiMenuLabelMode: document.getElementById('ui-menu-label-mode'),
       menuOptSolo: document.getElementById('menu-opt-solo'),
       uiMenuModeSoloTitle: document.getElementById('ui-menu-mode-solo-title'),
@@ -1176,6 +2038,8 @@
       uiBtnPauseLabel: document.getElementById('ui-btn-pause-label'),
       playerXCard: document.getElementById('player-x-card'),
       playerOCard: document.getElementById('player-o-card'),
+      hudPlayerXMark: document.getElementById('hud-player-x-mark'),
+      hudPlayerOMark: document.getElementById('hud-player-o-mark'),
       uiPlayerXName: document.getElementById('ui-player-x-name'),
       uiPlayerOName: document.getElementById('ui-player-o-name'),
       scoreX: document.getElementById('score-x'),
@@ -1185,8 +2049,16 @@
       directiveBox: document.getElementById('directive-box'),
       directiveIcon: document.getElementById('directive-icon'),
       directiveText: document.getElementById('directive-text'),
+      macroBoardContainer: document.getElementById('macro-board-container'),
       macroBoard: document.getElementById('macro-board'),
       uiGameFooterTip: document.getElementById('ui-game-footer-tip'),
+
+      // Power-ups Bar
+      powerupsBar: document.getElementById('powerups-bar'),
+      btnPowerupUndo: document.getElementById('btn-powerup-undo'),
+      uiPowerupUndo: document.getElementById('ui-powerup-undo'),
+      btnPowerupHint: document.getElementById('btn-powerup-hint'),
+      uiPowerupHint: document.getElementById('ui-powerup-hint'),
 
       // Settings Modal (Menu)
       modalSettings: document.getElementById('modal-settings'),
@@ -1227,6 +2099,39 @@
       btnPauseOpenRules: document.getElementById('btn-pause-open-rules'),
       uiPauseViewRules: document.getElementById('ui-pause-view-rules'),
 
+      // Shop Modal (with 2 Tabs)
+      modalShop: document.getElementById('modal-shop'),
+      modalShopTitle: document.getElementById('modal-shop-title'),
+      btnCloseShopX: document.getElementById('btn-close-shop-x'),
+      btnCloseShop: document.getElementById('btn-close-shop'),
+      uiShopAdTitle: document.getElementById('ui-shop-ad-title'),
+      uiShopAdDesc: document.getElementById('ui-shop-ad-desc'),
+      btnShopWatchAd: document.getElementById('btn-shop-watch-ad'),
+      uiShopBtnWatch: document.getElementById('ui-shop-btn-watch'),
+      tabBtnMarkers: document.getElementById('tab-btn-markers'),
+      uiTabMarkersLabel: document.getElementById('ui-tab-markers-label'),
+      tabBtnGrid: document.getElementById('tab-btn-grid'),
+      uiTabGridLabel: document.getElementById('ui-tab-grid-label'),
+      shopTabMarkersContent: document.getElementById('shop-tab-markers-content'),
+      shopTabGridContent: document.getElementById('shop-tab-grid-content'),
+
+      // Rewarded Ad Modal
+      modalRewardedAd: document.getElementById('modal-rewarded-ad'),
+      uiAdSponsoredBadge: document.getElementById('ui-ad-sponsored-badge'),
+      adTimerCountdown: document.getElementById('ad-timer-countdown'),
+      uiAdStatusTitle: document.getElementById('ui-ad-status-title'),
+      uiAdStatusDesc: document.getElementById('ui-ad-status-desc'),
+      adProgressBar: document.getElementById('ad-progress-bar'),
+      btnAdClaim: document.getElementById('btn-ad-claim'),
+
+      // Insufficient Coins Modal
+      modalInsufficientCoins: document.getElementById('modal-insufficient-coins'),
+      uiInsufficientTitle: document.getElementById('ui-insufficient-title'),
+      uiInsufficientDesc: document.getElementById('ui-insufficient-desc'),
+      btnInsufficientWatchAd: document.getElementById('btn-insufficient-watch-ad'),
+      uiInsufficientBtnWatch: document.getElementById('ui-insufficient-btn-watch'),
+      btnInsufficientCancel: document.getElementById('btn-insufficient-cancel'),
+
       // Rules Modal
       modalRules: document.getElementById('modal-rules'),
       modalRulesTitle: document.getElementById('modal-rules-title'),
@@ -1251,12 +2156,395 @@
       winnerTitle: document.getElementById('winner-title'),
       winnerDesc: document.getElementById('winner-desc'),
       winnerGlowBg: document.getElementById('winner-glow-bg'),
+      winnerRewardContainer: document.getElementById('winner-reward-container'),
+      winnerRewardText: document.getElementById('winner-reward-text'),
+      btnWinnerDoubleReward: document.getElementById('btn-winner-double-reward'),
+      uiWinnerBtnDouble: document.getElementById('ui-winner-btn-double'),
       btnModalRestart: document.getElementById('btn-modal-restart'),
       btnModalToMenu: document.getElementById('btn-modal-to-menu')
     };
 
     /* ==========================================================================
-       5. LOCALIZATION RENDERER
+       6. REWARDED ADS MANAGER (Mock SDK for Playables / Web Portals)
+       ========================================================================== */
+    class RewardedAdManager {
+      constructor() {
+        this.activeCallback = null;
+        this.timer = null;
+        this.secondsRemaining = 5;
+      }
+
+      showRewardedVideo(onRewardCallback) {
+        sound.init();
+        this.activeCallback = onRewardCallback;
+        this.secondsRemaining = 5;
+
+        el.adTimerCountdown.textContent = '5s';
+        el.adProgressBar.style.width = '0%';
+        el.btnAdClaim.disabled = true;
+        el.btnAdClaim.className = 'w-full py-3 bg-slate-800 text-slate-500 font-black rounded-xl text-xs sm:text-sm cursor-not-allowed transition duration-200';
+
+        const t = I18N[currentLang];
+        el.btnAdClaim.textContent = t.rewardIn.replace('{s}', '5');
+
+        el.modalRewardedAd.classList.remove('hidden');
+
+        setTimeout(() => {
+          el.adProgressBar.style.width = '100%';
+        }, 50);
+
+        const startTime = Date.now();
+        const durationMs = 5000;
+
+        if (this.timer) clearInterval(this.timer);
+        this.timer = setInterval(() => {
+          const elapsed = Date.now() - startTime;
+          const remainingSec = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
+
+          el.adTimerCountdown.textContent = `${remainingSec}s`;
+          el.btnAdClaim.textContent = t.rewardIn.replace('{s}', remainingSec);
+
+          if (elapsed >= durationMs) {
+            clearInterval(this.timer);
+            this.timer = null;
+            this.onAdCompleted();
+          }
+        }, 200);
+      }
+
+      onAdCompleted() {
+        sound.playCoin();
+        const t = I18N[currentLang];
+        el.adTimerCountdown.textContent = '✓';
+        el.btnAdClaim.disabled = false;
+        el.btnAdClaim.textContent = t.claimReward;
+        el.btnAdClaim.className = 'w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black rounded-xl text-xs sm:text-sm cursor-pointer shadow-lg shadow-emerald-950/60 transition transform active:scale-95 animate-bounce';
+      }
+
+      claimAndClose() {
+        el.modalRewardedAd.classList.add('hidden');
+        if (typeof this.activeCallback === 'function') {
+          const cb = this.activeCallback;
+          this.activeCallback = null;
+          cb();
+        }
+      }
+    }
+
+    const adManager = new RewardedAdManager();
+
+    el.btnAdClaim.addEventListener('click', () => {
+      adManager.claimAndClose();
+    });
+
+    /* ==========================================================================
+       7. ECONOMY & WALLET CONTROLLER
+       ========================================================================== */
+    function updateCoinsDisplay() {
+      el.menuCoinsAmount.textContent = coins;
+      el.gameCoinsAmount.textContent = coins;
+      el.shopCoinsAmount.textContent = coins;
+      localStorage.setItem(STORAGE_KEY_COINS, coins);
+    }
+
+    function addCoins(amount, playSfx = true) {
+      coins += amount;
+      updateCoinsDisplay();
+      if (playSfx) sound.playCoin();
+    }
+
+    function spendCoins(amount) {
+      if (coins >= amount) {
+        coins -= amount;
+        updateCoinsDisplay();
+        return true;
+      }
+      return false;
+    }
+
+    function promptInsufficientCoins(requiredAmount, onRewardFallback) {
+      sound.playError();
+      const t = I18N[currentLang];
+      el.uiInsufficientDesc.textContent = t.insufficientCoinsDesc.replace('{cost}', requiredAmount);
+      el.modalInsufficientCoins.classList.remove('hidden');
+
+      el.btnInsufficientWatchAd.onclick = () => {
+        el.modalInsufficientCoins.classList.add('hidden');
+        adManager.showRewardedVideo(() => {
+          addCoins(100);
+          if (typeof onRewardFallback === 'function') {
+            onRewardFallback();
+          }
+        });
+      };
+
+      el.btnInsufficientCancel.onclick = () => {
+        el.modalInsufficientCoins.classList.add('hidden');
+      };
+    }
+
+    function handleWalletClick() {
+      sound.init();
+      sound.playClick();
+      adManager.showRewardedVideo(() => {
+        addCoins(100);
+      });
+    }
+
+    el.btnMenuCoins.addEventListener('click', handleWalletClick);
+
+    /* ==========================================================================
+       8. COSMETIC SKINS & GRID THEMES ENGINE
+       ========================================================================== */
+    function applySkinCSS() {
+      const activeSkin = MARKER_SKINS[equippedSkinId] || MARKER_SKINS['neon-cyber'];
+      document.documentElement.style.setProperty('--skin-x-color', activeSkin.xColor);
+      document.documentElement.style.setProperty('--skin-x-glow', activeSkin.xGlow);
+      document.documentElement.style.setProperty('--skin-o-color', activeSkin.oColor);
+      document.documentElement.style.setProperty('--skin-o-glow', activeSkin.oGlow);
+      renderUI();
+    }
+
+    function applyGridThemeCSS() {
+      const activeGrid = GRID_SKINS[equippedGridId] || GRID_SKINS['midnight-obsidian'];
+      const root = document.documentElement;
+
+      root.style.setProperty('--grid-active-glow', activeGrid.activeGlow);
+      root.style.setProperty('--grid-active-border', activeGrid.activeBorder);
+
+      if (el.macroBoardContainer) {
+        el.macroBoardContainer.style.backgroundColor = activeGrid.macroBg;
+        el.macroBoardContainer.style.borderColor = activeGrid.macroBorder;
+        el.macroBoardContainer.style.borderWidth = '2px';
+        el.macroBoardContainer.style.boxShadow = activeGrid.macroGlow;
+      }
+      renderUI();
+    }
+
+    function equipMarkerSkin(skinId) {
+      if (!unlockedSkins.includes(skinId)) return;
+      equippedSkinId = skinId;
+      localStorage.setItem(STORAGE_KEY_SKIN, skinId);
+      sound.playPowerup();
+      applySkinCSS();
+      renderShopModal();
+    }
+
+    function buyMarkerSkin(skinId) {
+      const skin = MARKER_SKINS[skinId];
+      if (!skin || unlockedSkins.includes(skinId)) return;
+
+      if (spendCoins(skin.price)) {
+        unlockedSkins.push(skinId);
+        localStorage.setItem(STORAGE_KEY_UNLOCKED, JSON.stringify(unlockedSkins));
+        equipMarkerSkin(skinId);
+      } else {
+        promptInsufficientCoins(skin.price, () => {
+          renderShopModal();
+        });
+      }
+    }
+
+    function equipGridSkin(gridId) {
+      if (!unlockedGrids.includes(gridId)) return;
+      equippedGridId = gridId;
+      localStorage.setItem(STORAGE_KEY_GRID, gridId);
+      sound.playPowerup();
+      applyGridThemeCSS();
+      renderShopModal();
+    }
+
+    function buyGridSkin(gridId) {
+      const gridSkin = GRID_SKINS[gridId];
+      if (!gridSkin || unlockedGrids.includes(gridId)) return;
+
+      if (spendCoins(gridSkin.price)) {
+        unlockedGrids.push(gridId);
+        localStorage.setItem(STORAGE_KEY_UNLOCKED_GRIDS, JSON.stringify(unlockedGrids));
+        equipGridSkin(gridId);
+      } else {
+        promptInsufficientCoins(gridSkin.price, () => {
+          renderShopModal();
+        });
+      }
+    }
+
+    function updateShopModalTexts() {
+      const t = I18N[currentLang] || I18N.pt;
+      if (el.modalShopTitle) el.modalShopTitle.innerHTML = `<span>🛍️</span> ${t.shopTitle}`;
+      if (el.uiShopAdTitle) el.uiShopAdTitle.textContent = t.needMoreCoinsTitle;
+      if (el.uiShopAdDesc) el.uiShopAdDesc.textContent = t.needMoreCoinsDesc;
+      if (el.uiShopBtnWatch) el.uiShopBtnWatch.textContent = '+100 🪙';
+      if (el.uiTabMarkersLabel) el.uiTabMarkersLabel.textContent = t.tabMarkers;
+      if (el.uiTabGridLabel) el.uiTabGridLabel.textContent = t.tabGrid;
+      if (el.btnCloseShop) el.btnCloseShop.textContent = t.closeBtn;
+    }
+
+    // Render 2 Tabs in Shop
+    function renderShopModal() {
+      const t = I18N[currentLang] || I18N.pt;
+
+      // Update Tab Buttons UI
+      if (activeShopTab === 'markers') {
+        el.tabBtnMarkers.className = 'flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow-sm';
+        el.tabBtnGrid.className = 'flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200';
+        el.shopTabMarkersContent.classList.remove('hidden');
+        el.shopTabGridContent.classList.add('hidden');
+      } else {
+        el.tabBtnGrid.className = 'flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow-sm';
+        el.tabBtnMarkers.className = 'flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200';
+        el.shopTabGridContent.classList.remove('hidden');
+        el.shopTabMarkersContent.classList.add('hidden');
+      }
+
+      // 1. Render Marker Skins
+      el.shopTabMarkersContent.innerHTML = '';
+      Object.values(MARKER_SKINS).forEach(skin => {
+        const isUnlocked = unlockedSkins.includes(skin.id);
+        const isEquipped = equippedSkinId === skin.id;
+
+        const card = document.createElement('div');
+        card.className = `p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${isEquipped ? 'border-amber-500/80 bg-amber-950/20 shadow-md shadow-amber-950/30' : 'border-slate-800 bg-slate-950/60'}`;
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'flex items-center gap-3';
+
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'flex items-center gap-1.5 font-black font-mono text-xl p-2 rounded-lg bg-slate-900 border border-slate-800 shrink-0';
+        previewDiv.innerHTML = `
+          <span style="color: ${skin.xColor}; text-shadow: ${skin.xGlow};">X</span>
+          <span class="text-xs text-slate-600">•</span>
+          <span style="color: ${skin.oColor}; text-shadow: ${skin.oGlow};">O</span>
+        `;
+
+        const textDiv = document.createElement('div');
+        const skinName = t[skin.nameKey] || (I18N.pt && I18N.pt[skin.nameKey]) || (I18N.en && I18N.en[skin.nameKey]) || skin.id;
+        const freeLabel = (currentLang === 'pt') ? 'Grátis' : ((currentLang === 'es') ? 'Gratis' : 'Free');
+        textDiv.innerHTML = `
+          <div class="text-xs sm:text-sm font-bold text-slate-100">${skinName}</div>
+          <div class="text-[10px] text-slate-400 font-mono">${skin.price === 0 ? freeLabel : skin.price + ' 🪙'}</div>
+        `;
+
+        infoDiv.appendChild(previewDiv);
+        infoDiv.appendChild(textDiv);
+
+        const actionBtn = document.createElement('button');
+        if (isEquipped) {
+          actionBtn.disabled = true;
+          actionBtn.className = 'px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-700/60 text-xs font-bold shrink-0';
+          actionBtn.textContent = `✓ ${t.equipped}`;
+        } else if (isUnlocked) {
+          actionBtn.className = 'px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition active:scale-95 shrink-0 shadow-md';
+          actionBtn.textContent = t.equip;
+          actionBtn.addEventListener('click', () => equipMarkerSkin(skin.id));
+        } else {
+          actionBtn.className = 'px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs font-black transition active:scale-95 shrink-0 shadow-md';
+          actionBtn.textContent = t.buy.replace('{price}', skin.price);
+          actionBtn.addEventListener('click', () => buyMarkerSkin(skin.id));
+        }
+
+        card.appendChild(infoDiv);
+        card.appendChild(actionBtn);
+        el.shopTabMarkersContent.appendChild(card);
+      });
+
+      // 2. Render Board / Grid Themes
+      el.shopTabGridContent.innerHTML = '';
+      Object.values(GRID_SKINS).forEach(gridSkin => {
+        const isUnlocked = unlockedGrids.includes(gridSkin.id);
+        const isEquipped = equippedGridId === gridSkin.id;
+
+        const card = document.createElement('div');
+        card.className = `p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${isEquipped ? 'border-amber-500/80 bg-amber-950/20 shadow-md shadow-amber-950/30' : 'border-slate-800 bg-slate-950/60'}`;
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'flex items-center gap-3';
+
+        // 3x3 Mini schematic preview of the grid theme (100% faithful replica of the board)
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'w-11 h-11 p-1 rounded-xl grid grid-cols-3 gap-0.5 shrink-0 transition-all';
+        previewDiv.style.backgroundColor = gridSkin.macroBg;
+        previewDiv.style.border = `2px solid ${gridSkin.macroBorder}`;
+        previewDiv.style.boxShadow = `0 0 12px ${gridSkin.macroBorder}60`;
+        previewDiv.innerHTML = `
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.activeBorder}; box-shadow: 0 0 8px ${gridSkin.activeGlow};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+          <div class="rounded-sm" style="background-color: ${gridSkin.cellBg}; border: 1px solid ${gridSkin.cellBorder};"></div>
+        `;
+
+        const textDiv = document.createElement('div');
+        const gridName = t[gridSkin.nameKey] || (I18N.pt && I18N.pt[gridSkin.nameKey]) || (I18N.en && I18N.en[gridSkin.nameKey]) || gridSkin.id;
+        const freeLabel = (currentLang === 'pt') ? 'Grátis' : ((currentLang === 'es') ? 'Gratis' : 'Free');
+        textDiv.innerHTML = `
+          <div class="text-xs sm:text-sm font-bold text-slate-100">${gridName}</div>
+          <div class="text-[10px] text-slate-400 font-mono">${gridSkin.price === 0 ? freeLabel : gridSkin.price + ' 🪙'}</div>
+        `;
+
+        infoDiv.appendChild(previewDiv);
+        infoDiv.appendChild(textDiv);
+
+        const actionBtn = document.createElement('button');
+        if (isEquipped) {
+          actionBtn.disabled = true;
+          actionBtn.className = 'px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-700/60 text-xs font-bold shrink-0';
+          actionBtn.textContent = `✓ ${t.equipped}`;
+        } else if (isUnlocked) {
+          actionBtn.className = 'px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition active:scale-95 shrink-0 shadow-md';
+          actionBtn.textContent = t.equip;
+          actionBtn.addEventListener('click', () => equipGridSkin(gridSkin.id));
+        } else {
+          actionBtn.className = 'px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs font-black transition active:scale-95 shrink-0 shadow-md';
+          actionBtn.textContent = t.buy.replace('{price}', gridSkin.price);
+          actionBtn.addEventListener('click', () => buyGridSkin(gridSkin.id));
+        }
+
+        card.appendChild(infoDiv);
+        card.appendChild(actionBtn);
+        el.shopTabGridContent.appendChild(card);
+      });
+    }
+
+    // Tab Switcher handlers
+    el.tabBtnMarkers.addEventListener('click', () => {
+      sound.playClick();
+      activeShopTab = 'markers';
+      renderShopModal();
+    });
+
+    el.tabBtnGrid.addEventListener('click', () => {
+      sound.playClick();
+      activeShopTab = 'grid';
+      renderShopModal();
+    });
+
+    // Open Shop ONLY from Start Menu
+    function openShop() {
+      sound.init();
+      sound.playClick();
+      updateShopModalTexts();
+      renderShopModal();
+      el.modalShop.classList.remove('hidden');
+    }
+
+    el.btnMenuShop.addEventListener('click', openShop);
+    el.btnCloseShopX.addEventListener('click', () => el.modalShop.classList.add('hidden'));
+    el.btnCloseShop.addEventListener('click', () => el.modalShop.classList.add('hidden'));
+
+    el.btnShopWatchAd.addEventListener('click', () => {
+      adManager.showRewardedVideo(() => {
+        addCoins(100);
+        renderShopModal();
+      });
+    });
+
+    /* ==========================================================================
+       9. LOCALIZATION RENDERER
        ========================================================================== */
     function applyLanguage(lang) {
       if (!I18N[lang]) lang = 'en';
@@ -1269,8 +2557,8 @@
       // Menu Texts
       el.uiMenuTitle.textContent = t.title;
       el.uiMenuSubtitle.textContent = t.subtitle;
-      el.uiMenuBtnSettings.textContent = t.settingsBtn;
       el.uiMenuBtnRules.textContent = t.rulesBtn;
+      el.uiMenuBtnShop.textContent = t.shopBtn;
       el.uiMenuLabelMode.textContent = t.selectMode;
       el.uiMenuLabelDiff.textContent = t.selectDiff;
       el.uiMenuModeSoloTitle.textContent = t.modeSoloTitle;
@@ -1294,11 +2582,13 @@
       el.settingsLangCode.textContent = t.code;
       el.btnCloseSettings.textContent = t.doneBtn;
 
-      // In-game texts
+      // In-game texts & Powerups
       el.uiGameTitle.textContent = t.title;
       el.uiBtnPauseLabel.textContent = t.pauseMenu;
       el.turnSubtitle.textContent = t.turnCurrent;
       el.uiGameFooterTip.textContent = t.footerTip;
+      el.uiPowerupUndo.textContent = t.undo;
+      el.uiPowerupHint.textContent = t.hint;
 
       // Pause Modal Texts
       el.modalPauseTitle.innerHTML = `<span>⏸️</span> ${t.gamePaused}`;
@@ -1312,6 +2602,19 @@
       el.pauseLangFlag.textContent = t.flag;
       el.pauseLangCode.textContent = t.code;
       el.uiPauseViewRules.textContent = t.howToPlayTitle;
+
+      // Shop Modal Texts & Tabs
+      updateShopModalTexts();
+
+      // Rewarded Ad Texts
+      el.uiAdSponsoredBadge.textContent = t.adSponsored;
+      el.uiAdStatusTitle.textContent = t.adStatusTitle;
+      el.uiAdStatusDesc.textContent = t.adStatusDesc;
+
+      // Insufficient Coins Modal
+      el.uiInsufficientTitle.textContent = t.insufficientCoinsTitle;
+      el.uiInsufficientBtnWatch.textContent = t.watchAdBtn;
+      el.btnInsufficientCancel.textContent = t.cancel;
 
       // Rules Modal Texts & Visual Diagram
       el.modalRulesTitle.innerHTML = `<span>🧠</span> ${t.howToPlayTitle}`;
@@ -1332,10 +2635,12 @@
       // Winner Modal Buttons
       el.btnModalRestart.textContent = t.playAgain;
       el.btnModalToMenu.textContent = t.mainMenu;
+      el.uiWinnerBtnDouble.textContent = t.doubleRewardBtn;
 
       updateModeBadge();
       updatePlayerCards();
       updateTurnAndDirectives();
+      renderShopModal();
     }
 
     function updateModeBadge() {
@@ -1343,13 +2648,15 @@
       if (gameMode === 'solo') {
         const diffMap = { easy: t.diffEasy, medium: t.diffMed, hard: t.diffHard, extreme: t.diffExtreme };
         el.uiGameModeBadge.textContent = `🤖 Solo • ${diffMap[difficulty] || difficulty}`;
+        el.powerupsBar.classList.remove('hidden');
       } else {
         el.uiGameModeBadge.textContent = `👥 ${t.modePvpTitle}`;
+        el.powerupsBar.classList.add('hidden');
       }
     }
 
     /* ==========================================================================
-       6. SCREEN NAVIGATION & MENU SETUP
+       10. SCREEN NAVIGATION & MENU SETUP
        ========================================================================== */
     function showScreen(screen) {
       if (screen === 'menu') {
@@ -1384,20 +2691,25 @@
     }
 
     /* ==========================================================================
-       7. BOARD INITIALIZATION & GAMEPLAY LOGIC
+       11. BOARD INITIALIZATION & CORE ENGINE
        ========================================================================== */
     function initMacroBoardDOM() {
+      const activeGrid = GRID_SKINS[equippedGridId] || GRID_SKINS['midnight-obsidian'];
       el.macroBoard.innerHTML = '';
 
       for (let b = 0; b < 9; b++) {
         const miniBoard = document.createElement('div');
         miniBoard.id = `board-${b}`;
-        miniBoard.className = `grid grid-cols-3 gap-1 bg-slate-950 p-1 sm:p-1.5 rounded-xl border border-slate-800 relative transition-all duration-300`;
+        miniBoard.className = `grid grid-cols-3 gap-1 p-1 sm:p-1.5 rounded-xl relative transition-all duration-300`;
+        miniBoard.style.backgroundColor = activeGrid.miniBg;
+        miniBoard.style.border = `1.5px solid ${activeGrid.miniBorder}`;
 
         for (let c = 0; c < 9; c++) {
           const cell = document.createElement('button');
           cell.id = `cell-${b}-${c}`;
-          cell.className = `cell-btn aspect-square bg-slate-800/80 hover:bg-slate-700/80 rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all disabled:cursor-not-allowed`;
+          cell.className = `cell-btn aspect-square rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all disabled:cursor-not-allowed`;
+          cell.style.backgroundColor = activeGrid.cellBg;
+          cell.style.border = `1px solid ${activeGrid.cellBorder}`;
           cell.setAttribute('aria-label', `Board ${b + 1}, Cell ${c + 1}`);
           cell.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1454,6 +2766,16 @@
       return moves;
     }
 
+    function saveStateSnapshot() {
+      moveHistory.push({
+        boards: JSON.parse(JSON.stringify(boards)),
+        macroBoard: [...macroBoard],
+        activeBoardIndex,
+        currentPlayer,
+        winner
+      });
+    }
+
     function handleUserMove(boardIdx, cellIdx) {
       if (winner || isAiThinking) return;
       if (gameMode === 'solo' && currentPlayer !== 'X') return;
@@ -1468,6 +2790,8 @@
         return;
       }
 
+      saveStateSnapshot();
+      activeHintCell = null;
       executeMove(boardIdx, cellIdx);
     }
 
@@ -1505,13 +2829,121 @@
     }
 
     /* ==========================================================================
-       8. LOCAL AI ENGINE WITH IMMERSIVE THINKING DELAY
+       12. TACTICAL POWER-UPS (UNDO & HINT)
+       ========================================================================== */
+    function useUndoPowerup() {
+      if (gameMode !== 'solo' || isAiThinking || winner) return;
+
+      if (moveHistory.length === 0) {
+        sound.playError();
+        return;
+      }
+
+      if (!spendCoins(30)) {
+        promptInsufficientCoins(30, () => {
+          useUndoPowerup();
+        });
+        return;
+      }
+
+      sound.playUndo();
+
+      let targetState = null;
+      while (moveHistory.length > 0) {
+        const state = moveHistory.pop();
+        if (state.currentPlayer === 'X') {
+          targetState = state;
+          break;
+        }
+      }
+
+      if (targetState) {
+        boards = JSON.parse(JSON.stringify(targetState.boards));
+        macroBoard = [...targetState.macroBoard];
+        activeBoardIndex = targetState.activeBoardIndex;
+        currentPlayer = 'X';
+        winner = null;
+        isAiThinking = false;
+        activeHintCell = null;
+        renderUI();
+      }
+    }
+
+    function useHintPowerup() {
+      if (gameMode !== 'solo' || isAiThinking || winner || currentPlayer !== 'X') return;
+
+      if (!spendCoins(20)) {
+        promptInsufficientCoins(20, () => {
+          useHintPowerup();
+        });
+        return;
+      }
+
+      sound.playPowerup();
+
+      const legalMoves = getAvailableMoves(boards, macroBoard, activeBoardIndex);
+      if (legalMoves.length === 0) return;
+
+      let bestMove = null;
+      let highestScore = -Infinity;
+
+      for (const m of legalMoves) {
+        let score = 0;
+        const xWinsMini = wouldWinMiniBoard(boards[m.b], m.c, 'X');
+        const oCouldWinMini = wouldWinMiniBoard(boards[m.b], m.c, 'O');
+
+        if (xWinsMini) {
+          score += 4000;
+          if (wouldWinMacroBoard(macroBoard, m.b, 'X')) score += 100000;
+        }
+        if (oCouldWinMini) {
+          score += 2400;
+          if (wouldWinMacroBoard(macroBoard, m.b, 'O')) score += 85000;
+        }
+
+        score += evaluateMacroSynergy(m.b, 'X') * 350;
+        score += evaluateMacroSynergy(m.b, 'O') * 200;
+
+        const targetIsWon = macroBoard[m.c] !== '' || !boards[m.c].some(cell => cell === '');
+        if (targetIsWon) {
+          score -= 3000;
+        } else if (hasImmediateWinInBoard(boards[m.c], 'O')) {
+          score -= 1500;
+        }
+
+        if (m.c === 4) score += 60;
+        else if ([0, 2, 6, 8].includes(m.c)) score += 35;
+        else score += 15;
+
+        score += Math.random() * 2;
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestMove = m;
+        }
+      }
+
+      activeHintCell = bestMove || legalMoves[0];
+      renderUI();
+    }
+
+    el.btnPowerupUndo.addEventListener('click', () => {
+      sound.init();
+      useUndoPowerup();
+    });
+
+    el.btnPowerupHint.addEventListener('click', () => {
+      sound.init();
+      useHintPowerup();
+    });
+
+    /* ==========================================================================
+       13. LOCAL AI ENGINE WITH IMMERSIVE THINKING DELAY
        ========================================================================== */
     function triggerAiTurn() {
       isAiThinking = true;
       renderUI();
 
-      // Meaningful tactical delay based on difficulty
       let baseDelay = 700;
       let variance = 300;
       if (difficulty === 'hard') {
@@ -1530,6 +2962,7 @@
           return;
         }
 
+        saveStateSnapshot();
         const move = calculateAiMove();
         isAiThinking = false;
 
@@ -1725,21 +3158,29 @@
     }
 
     /* ==========================================================================
-       9. UI UPDATES & DOM STATE SYNC
+       14. UI UPDATES & DOM STATE SYNC
        ========================================================================== */
     function renderUI() {
+      const activeSkin = MARKER_SKINS[equippedSkinId] || MARKER_SKINS['neon-cyber'];
+      const activeGrid = GRID_SKINS[equippedGridId] || GRID_SKINS['midnight-obsidian'];
+
       for (let b = 0; b < 9; b++) {
         const miniBoardEl = document.getElementById(`board-${b}`);
         const overlayEl = document.getElementById(`overlay-${b}`);
         const isWon = macroBoard[b] !== '';
         const isActive = !winner && (activeBoardIndex === null || activeBoardIndex === b) && !isWon;
 
+        // Mini-board styling
+        miniBoardEl.className = 'grid grid-cols-3 gap-1 p-1 sm:p-1.5 rounded-xl relative transition-all duration-300';
+        miniBoardEl.style.backgroundColor = activeGrid.miniBg;
+
         if (isActive) {
-          miniBoardEl.classList.add('active-board', 'border-indigo-400');
-          miniBoardEl.classList.remove('border-slate-800', 'opacity-50');
+          miniBoardEl.classList.add('active-board');
+          miniBoardEl.classList.remove('opacity-50');
+          miniBoardEl.style.border = `2px solid ${activeGrid.activeBorder}`;
         } else {
-          miniBoardEl.classList.remove('active-board', 'border-indigo-400');
-          miniBoardEl.classList.add('border-slate-800');
+          miniBoardEl.classList.remove('active-board');
+          miniBoardEl.style.border = `1.5px solid ${activeGrid.miniBorder}`;
           if (isWon || (activeBoardIndex !== null && activeBoardIndex !== b)) {
             miniBoardEl.classList.add('opacity-50');
           } else {
@@ -1753,10 +3194,10 @@
 
           if (macroBoard[b] === 'X') {
             overlayEl.textContent = 'X';
-            overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-5xl sm:text-6xl font-black font-mono transition-all duration-300 bg-slate-950/85 text-cyan-400 glow-x border-2 border-cyan-500/70 z-10`;
+            overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-5xl sm:text-6xl font-black font-mono transition-all duration-300 bg-slate-950/85 glow-skin-x border-2 ${activeSkin.xOverlayClass} z-10`;
           } else if (macroBoard[b] === 'O') {
             overlayEl.textContent = 'O';
-            overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-5xl sm:text-6xl font-black font-mono transition-all duration-300 bg-slate-950/85 text-rose-400 glow-o border-2 border-rose-500/70 z-10`;
+            overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-5xl sm:text-6xl font-black font-mono transition-all duration-300 bg-slate-950/85 glow-skin-o border-2 ${activeSkin.oOverlayClass} z-10`;
           } else {
             overlayEl.textContent = '➖';
             overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-3xl font-black font-mono transition-all duration-300 bg-slate-950/90 text-slate-500 border border-slate-700 z-10`;
@@ -1771,19 +3212,32 @@
           const val = boards[b][c];
           cellBtn.textContent = val;
 
+          const isHinted = activeHintCell && activeHintCell.b === b && activeHintCell.c === c;
+
           if (val === 'X') {
-            cellBtn.className = `cell-btn aspect-square bg-slate-900 text-cyan-400 font-black font-mono text-base sm:text-2xl flex items-center justify-center glow-x rounded-md cursor-default border border-cyan-500/30`;
+            cellBtn.className = 'cell-btn aspect-square glow-skin-x font-black font-mono text-base sm:text-2xl flex items-center justify-center rounded-md cursor-default';
+            cellBtn.style.backgroundColor = activeGrid.cellBg;
+            cellBtn.style.border = `1px solid ${activeGrid.cellBorder}`;
             cellBtn.disabled = true;
           } else if (val === 'O') {
-            cellBtn.className = `cell-btn aspect-square bg-slate-900 text-rose-400 font-black font-mono text-base sm:text-2xl flex items-center justify-center glow-o rounded-md cursor-default border border-rose-500/30`;
+            cellBtn.className = 'cell-btn aspect-square glow-skin-o font-black font-mono text-base sm:text-2xl flex items-center justify-center rounded-md cursor-default';
+            cellBtn.style.backgroundColor = activeGrid.cellBg;
+            cellBtn.style.border = `1px solid ${activeGrid.cellBorder}`;
             cellBtn.disabled = true;
           } else {
             const canPlay = isActive && val === '' && !isAiThinking && !winner;
             cellBtn.disabled = !canPlay;
-            if (canPlay) {
-              cellBtn.className = `cell-btn aspect-square bg-slate-800/90 hover:bg-indigo-950/70 active:bg-indigo-900/90 text-slate-400 hover:text-white rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all border border-slate-700/60 shadow-inner`;
+            cellBtn.style.backgroundColor = activeGrid.cellBg;
+
+            if (isHinted && canPlay) {
+              cellBtn.className = 'cell-btn aspect-square hint-highlight rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center';
+              cellBtn.style.border = '2px solid #f59e0b';
+            } else if (canPlay) {
+              cellBtn.className = 'cell-btn aspect-square rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all cursor-pointer hover:brightness-125';
+              cellBtn.style.border = `1px solid ${activeGrid.activeBorder}`;
             } else {
-              cellBtn.className = `cell-btn aspect-square bg-slate-900/30 text-transparent rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all border border-slate-900/50 cursor-not-allowed`;
+              cellBtn.className = 'cell-btn aspect-square rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all opacity-40 cursor-not-allowed';
+              cellBtn.style.border = `1px solid ${activeGrid.cellBorder}`;
             }
           }
         }
@@ -1795,6 +3249,7 @@
 
     function updatePlayerCards() {
       const t = I18N[currentLang];
+      const activeSkin = MARKER_SKINS[equippedSkinId] || MARKER_SKINS['neon-cyber'];
 
       if (gameMode === 'solo') {
         el.uiPlayerXName.textContent = t.playerYou;
@@ -1809,10 +3264,10 @@
       }
 
       if (currentPlayer === 'X' && !winner) {
-        el.playerXCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-cyan-500/70 bg-cyan-950/40 glow-box-x scale-[1.02]';
+        el.playerXCard.className = `flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 ${activeSkin.xBadge} scale-[1.02] shadow-lg`;
         el.playerOCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-transparent opacity-40 scale-100';
       } else if (currentPlayer === 'O' && !winner) {
-        el.playerOCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-rose-500/70 bg-rose-950/40 glow-box-o scale-[1.02]';
+        el.playerOCard.className = `flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 ${activeSkin.oBadge} scale-[1.02] shadow-lg`;
         el.playerXCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-transparent opacity-40 scale-100';
       } else {
         el.playerXCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border border-transparent opacity-60 scale-100';
@@ -1825,43 +3280,53 @@
 
       if (winner) {
         el.turnStatusText.textContent = winner === 'T' ? t.draw : `${winner} ${t.victory}`;
-        el.turnStatusText.className = winner === 'X' ? 'text-xs sm:text-sm font-black text-cyan-400 glow-x' : (winner === 'O' ? 'text-xs sm:text-sm font-black text-rose-400 glow-o' : 'text-xs sm:text-sm font-black text-slate-300');
+        el.turnStatusText.className = winner === 'X' ? 'text-xs sm:text-sm font-black glow-skin-x' : (winner === 'O' ? 'text-xs sm:text-sm font-black glow-skin-o' : 'text-xs sm:text-sm font-black text-slate-300');
         el.directiveIcon.textContent = '🏁';
         el.directiveText.textContent = winner === 'T' ? t.drawDesc : (winner === 'X' ? t.winDescX : t.winDescO);
-        el.directiveBox.className = "mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300";
+        el.directiveBox.className = "mt-1 text-center text-[10px] sm:text-xs font-semibold py-0.5 px-2 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300";
         return;
       }
 
       if (isAiThinking) {
         el.turnStatusText.innerHTML = `<span class="inline-block animate-spin mr-1">⚙️</span> ${t.aiThinking}`;
-        el.turnStatusText.className = 'text-xs sm:text-sm font-black text-rose-400 glow-o animate-pulse truncate';
+        el.turnStatusText.className = 'text-xs sm:text-sm font-black glow-skin-o animate-pulse truncate';
       } else if (currentPlayer === 'X') {
         el.turnStatusText.textContent = (gameMode === 'solo') ? t.yourTurn : t.turnPlayerX;
-        el.turnStatusText.className = 'text-xs sm:text-sm font-black text-cyan-400 glow-x animate-pulse truncate';
+        el.turnStatusText.className = 'text-xs sm:text-sm font-black glow-skin-x animate-pulse truncate';
       } else {
         el.turnStatusText.textContent = (gameMode === 'solo') ? t.aiThinking : t.turnPlayerO;
-        el.turnStatusText.className = 'text-xs sm:text-sm font-black text-rose-400 glow-o animate-pulse truncate';
+        el.turnStatusText.className = 'text-xs sm:text-sm font-black glow-skin-o animate-pulse truncate';
       }
 
       if (activeBoardIndex === null) {
         el.directiveIcon.textContent = '🎯';
         el.directiveText.textContent = t.freeMove;
-        el.directiveBox.className = "mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-emerald-950/40 text-emerald-300 border-emerald-800/50 animate-pulse";
+        el.directiveBox.className = "mt-1 text-center text-[10px] sm:text-xs font-semibold py-0.5 px-2 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-emerald-950/40 text-emerald-300 border-emerald-800/50 animate-pulse";
       } else {
         const boardName = t.boardNames[activeBoardIndex] || `#${activeBoardIndex + 1}`;
         el.directiveIcon.textContent = '📍';
         el.directiveText.textContent = t.targetGrid.replace('{name}', boardName);
-        el.directiveBox.className = "mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-indigo-950/50 text-indigo-300 border-indigo-800/50";
+        el.directiveBox.className = "mt-1 text-center text-[10px] sm:text-xs font-semibold py-0.5 px-2 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-indigo-950/50 text-indigo-300 border-indigo-800/50";
       }
     }
 
     /* ==========================================================================
-       10. GAME OVER & WINNER MODAL
+       15. GAME OVER & REWARD CALCULATION
        ========================================================================== */
     function handleGameOver(winResult) {
+      matchEarnedCoins = 0;
+      rewardDoubled = false;
+
       if (winResult === 'X') {
-        if (gameMode === 'solo') savedScores.solo.player++;
-        else savedScores.pvp.x++;
+        if (gameMode === 'solo') {
+          savedScores.solo.player++;
+          if (difficulty === 'easy') matchEarnedCoins = 10;
+          else if (difficulty === 'medium') matchEarnedCoins = 20;
+          else if (difficulty === 'hard') matchEarnedCoins = 35;
+          else if (difficulty === 'extreme') matchEarnedCoins = 50;
+        } else {
+          savedScores.pvp.x++;
+        }
         sound.playGameWin();
       } else if (winResult === 'O') {
         if (gameMode === 'solo') {
@@ -1872,7 +3337,12 @@
           sound.playGameWin();
         }
       } else {
+        if (gameMode === 'solo') matchEarnedCoins = 5;
         sound.playTie();
+      }
+
+      if (matchEarnedCoins > 0) {
+        addCoins(matchEarnedCoins, false);
       }
 
       localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(savedScores));
@@ -1885,13 +3355,13 @@
       if (winner === 'X') {
         el.winnerIcon.textContent = '🏆';
         el.winnerTitle.textContent = t.victory;
-        el.winnerTitle.className = 'text-2xl sm:text-3xl font-black mb-1 text-cyan-400 glow-x';
+        el.winnerTitle.className = 'text-2xl sm:text-3xl font-black mb-1 glow-skin-x';
         el.winnerDesc.textContent = (gameMode === 'solo') ? t.winDescHuman : t.winDescX;
         el.winnerGlowBg.className = 'absolute -top-16 left-1/2 -translate-x-1/2 w-44 h-44 bg-cyan-500/25 blur-3xl rounded-full pointer-events-none';
       } else if (winner === 'O') {
         el.winnerIcon.textContent = (gameMode === 'solo') ? '🤖' : '🔥';
         el.winnerTitle.textContent = (gameMode === 'solo') ? t.defeat : t.victory;
-        el.winnerTitle.className = 'text-2xl sm:text-3xl font-black mb-1 text-rose-400 glow-o';
+        el.winnerTitle.className = 'text-2xl sm:text-3xl font-black mb-1 glow-skin-o';
         el.winnerDesc.textContent = (gameMode === 'solo') ? t.winDescAi : t.winDescO;
         el.winnerGlowBg.className = 'absolute -top-16 left-1/2 -translate-x-1/2 w-44 h-44 bg-rose-500/25 blur-3xl rounded-full pointer-events-none';
       } else {
@@ -1902,11 +3372,34 @@
         el.winnerGlowBg.className = 'absolute -top-16 left-1/2 -translate-x-1/2 w-44 h-44 bg-slate-500/20 blur-3xl rounded-full pointer-events-none';
       }
 
+      if (matchEarnedCoins > 0 && gameMode === 'solo') {
+        el.winnerRewardContainer.classList.remove('hidden');
+        el.winnerRewardText.textContent = t.coinsEarned.replace('{amount}', matchEarnedCoins);
+        el.btnWinnerDoubleReward.disabled = false;
+        el.btnWinnerDoubleReward.className = 'px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-lg text-xs shadow-md transition active:scale-95 flex items-center gap-1 cursor-pointer';
+        el.uiWinnerBtnDouble.textContent = t.doubleRewardBtn;
+      } else {
+        el.winnerRewardContainer.classList.add('hidden');
+      }
+
       el.modalWinner.classList.remove('hidden');
     }
 
+    el.btnWinnerDoubleReward.addEventListener('click', () => {
+      if (rewardDoubled || matchEarnedCoins <= 0) return;
+      adManager.showRewardedVideo(() => {
+        rewardDoubled = true;
+        addCoins(matchEarnedCoins);
+        const t = I18N[currentLang];
+        el.winnerRewardText.textContent = t.rewardDoubledText.replace('{amount}', matchEarnedCoins * 2);
+        el.btnWinnerDoubleReward.disabled = true;
+        el.btnWinnerDoubleReward.className = 'px-2.5 py-1.5 bg-emerald-950 text-emerald-400 border border-emerald-700/60 rounded-lg text-xs font-bold shrink-0';
+        el.uiWinnerBtnDouble.textContent = '✓ 2x';
+      });
+    });
+
     /* ==========================================================================
-       11. MATCH RESET & RESTART
+       16. MATCH RESET & RESTART
        ========================================================================== */
     function restartMatch() {
       currentPlayer = 'X';
@@ -1915,14 +3408,18 @@
       macroBoard = Array(9).fill('');
       winner = null;
       isAiThinking = false;
+      activeHintCell = null;
+      moveHistory = [];
       el.modalWinner.classList.add('hidden');
       el.modalPause.classList.add('hidden');
       initMacroBoardDOM();
+      applySkinCSS();
+      applyGridThemeCSS();
       renderUI();
     }
 
     /* ==========================================================================
-       12. EVENT LISTENERS & USER INTERACTIONS
+       17. EVENT LISTENERS & USER INTERACTIONS
        ========================================================================== */
     // Menu Mode Selection
     el.menuOptSolo.addEventListener('click', () => {
@@ -1960,7 +3457,7 @@
       showScreen('game');
     });
 
-    // Menu Settings Button -> Opens Settings Modal (Clean)
+    // Menu Settings Button -> Opens Settings Modal
     el.btnMenuSettings.addEventListener('click', () => {
       sound.init();
       sound.playClick();
@@ -2010,13 +3507,13 @@
       showScreen('menu');
     });
 
-    // Sound Toggles (Sync both Modals)
+    // Sound Toggles
     function toggleSound() {
       sound.init();
       soundEnabled = !soundEnabled;
       sound.enabled = soundEnabled;
       localStorage.setItem(STORAGE_KEY_SOUND, soundEnabled);
-      
+
       const t = I18N[currentLang];
       const icon = soundEnabled ? '🔊' : '🔇';
       const statusText = soundEnabled ? t.soundOn : t.soundOff;
@@ -2032,7 +3529,7 @@
     el.btnSettingsSoundToggle.addEventListener('click', toggleSound);
     el.btnPauseSoundToggle.addEventListener('click', toggleSound);
 
-    // Language Dropdowns (Both Modals)
+    // Language Dropdowns
     el.btnSettingsLang.addEventListener('click', (e) => {
       e.stopPropagation();
       sound.init();
@@ -2076,7 +3573,7 @@
       el.modalRules.classList.add('hidden');
     });
 
-    // Winner Modal Actions (View Board removed)
+    // Winner Modal Actions
     el.btnModalRestart.addEventListener('click', () => {
       sound.playClick();
       restartMatch();
@@ -2093,11 +3590,14 @@
     window.addEventListener('touchstart', () => sound.init(), { once: true });
 
     /* ==========================================================================
-       13. BOOTSTRAP INITIALIZATION
+       18. BOOTSTRAP INITIALIZATION
        ========================================================================== */
     function bootstrap() {
+      applySkinCSS();
+      applyGridThemeCSS();
       initMacroBoardDOM();
       syncMenuSelections();
+      updateCoinsDisplay();
       applyLanguage(currentLang);
       showScreen('menu');
     }
@@ -2105,4 +3605,5 @@
     bootstrap();
   </script>
 </body>
+
 </html>
