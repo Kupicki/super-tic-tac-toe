@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#020617">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Super Tic-Tac-Toe: Ultimate 9x9 strategic grid game with local AI, multilingual support, and zero external dependencies.">
+  <title>Super Tic-Tac-Toe | Ultimate Strategic Grid</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              x: '#38bdf8',    // Cyan neon
+              o: '#fb7185',    // Rose neon
+              active: '#818cf8', // Indigo light
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #020617;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 100%, rgba(244, 63, 94, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 10% 80%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+    }
+
+    .glow-x {
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.85);
+    }
+    .glow-o {
+      text-shadow: 0 0 12px rgba(251, 113, 133, 0.85);
+    }
+    .glow-box-x {
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+    }
+    .glow-box-o {
+      box-shadow: 0 0 16px rgba(251, 113, 133, 0.35);
+    }
+
+    /* Active mini-board pulse border */
+    .active-board {
+      box-shadow: 0 0 18px rgba(99, 102, 241, 0.45);
+      border-color: rgba(129, 140, 248, 0.9) !important;
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+        border-color: rgba(99, 102, 241, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 22px rgba(168, 85, 247, 0.6);
+        border-color: rgba(192, 132, 252, 1);
+      }
+    }
+
+    /* Micro animations for cells */
+    .cell-btn {
+      transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease;
+    }
+    .cell-btn:active:not(:disabled) {
+      transform: scale(0.90);
+    }
+
+    /* Scrollbar styling for modals */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 1);
+    }
+  </style>
+</head>
+<body class="h-[100dvh] max-h-[100dvh] text-slate-100 flex flex-col justify-between items-center p-2 sm:p-4 overflow-hidden select-none">
+
+  <!-- ==========================================================================
+       VIEW 1: START / LAUNCH MENU SCREEN
+       ========================================================================== -->
+  <div id="screen-menu" class="w-full max-w-md h-full flex flex-col justify-between items-center py-3 sm:py-6 px-3 animate-in fade-in zoom-in-95 duration-200">
+    
+    <!-- Menu Top Bar (Settings & Rules only) -->
+    <div class="w-full flex justify-end items-center gap-2 shrink-0">
+      <button id="btn-menu-settings" class="p-2 sm:px-3.5 sm:py-2 bg-slate-900/90 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700/80 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shadow-md">
+        <span>⚙️</span>
+        <span id="ui-menu-btn-settings">Settings</span>
+      </button>
+      <button id="btn-menu-rules" class="p-2 sm:px-3.5 sm:py-2 bg-slate-900/90 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700/80 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shadow-md">
+        <span>❓</span>
+        <span id="ui-menu-btn-rules">Rules</span>
+      </button>
+    </div>
+
+    <!-- Hero Title & Decorative Grid -->
+    <div class="flex flex-col items-center text-center my-auto shrink-0">
+      <div class="relative mb-3">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-tr from-cyan-500/20 via-indigo-500/20 to-rose-500/20 rounded-2xl border border-indigo-500/40 flex items-center justify-center shadow-xl shadow-indigo-500/10">
+          <div class="grid grid-cols-3 gap-1 w-10 h-10 sm:w-12 sm:h-12">
+            <span class="bg-cyan-500/80 rounded-sm"></span>
+            <span class="bg-slate-700/60 rounded-sm"></span>
+            <span class="bg-rose-500/80 rounded-sm"></span>
+            <span class="bg-slate-700/60 rounded-sm"></span>
+            <span class="bg-indigo-400 rounded-sm animate-pulse"></span>
+            <span class="bg-slate-700/60 rounded-sm"></span>
+            <span class="bg-rose-500/80 rounded-sm"></span>
+            <span class="bg-slate-700/60 rounded-sm"></span>
+            <span class="bg-cyan-500/80 rounded-sm"></span>
+          </div>
+        </div>
+      </div>
+      <h1 id="ui-menu-title" class="text-2xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400 bg-clip-text text-transparent">
+        SUPER TIC-TAC-TOE
+      </h1>
+      <p id="ui-menu-subtitle" class="text-xs sm:text-sm text-slate-400 font-medium tracking-wide mt-1">
+        Ultimate Strategic Grid
+      </p>
+    </div>
+
+    <!-- Selection Hub (Mode & Difficulty) -->
+    <div class="w-full flex flex-col gap-3 shrink-0 my-auto">
+      
+      <!-- 1º Decision: Game Mode -->
+      <div>
+        <label id="ui-menu-label-mode" class="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
+          1. Select Game Mode
+        </label>
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Solo Mode Card -->
+          <button id="menu-opt-solo" class="flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-indigo-500 bg-indigo-950/40 shadow-lg shadow-indigo-950/50">
+            <span class="text-2xl mb-1">🤖</span>
+            <span id="ui-menu-mode-solo-title" class="text-xs sm:text-sm font-black text-slate-100">Solo vs AI</span>
+            <span id="ui-menu-mode-solo-desc" class="text-[10px] text-indigo-300 font-medium mt-0.5">Player X vs AI Bot</span>
+          </button>
+          <!-- Duo Mode Card -->
+          <button id="menu-opt-pvp" class="flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700">
+            <span class="text-2xl mb-1">👥</span>
+            <span id="ui-menu-mode-pvp-title" class="text-xs sm:text-sm font-black text-slate-200">2 Players</span>
+            <span id="ui-menu-mode-pvp-desc" class="text-[10px] text-slate-400 font-medium mt-0.5">Pass & Play Local</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2º Decision: Difficulty (Only if Solo is selected) -->
+      <div id="menu-difficulty-section" class="transition-all duration-300">
+        <label id="ui-menu-label-diff" class="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
+          2. AI Difficulty Level
+        </label>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700" data-diff="easy" id="menu-diff-easy">
+            Easy
+          </button>
+          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700" data-diff="medium" id="menu-diff-medium">
+            Med
+          </button>
+          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-indigo-500 bg-indigo-950/60 text-white shadow-md shadow-indigo-950/50" data-diff="hard" id="menu-diff-hard">
+            Hard
+          </button>
+          <button class="menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700" data-diff="extreme" id="menu-diff-extreme">
+            Extreme
+          </button>
+        </div>
+      </div>
+
+      <!-- Play Action Button -->
+      <button id="btn-start-game" class="w-full py-3.5 sm:py-4 mt-2 bg-gradient-to-r from-cyan-500 via-indigo-600 to-rose-500 hover:from-cyan-400 hover:via-indigo-500 hover:to-rose-400 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-indigo-900/40 transition transform active:scale-95 flex items-center justify-center gap-2">
+        <span>🎮</span>
+        <span id="ui-menu-btn-play">START MATCH</span>
+      </button>
+    </div>
+
+    <!-- Blank spacing for perfect alignment (Tip removed from Menu as requested) -->
+    <div class="py-1"></div>
+  </div>
+
+  <!-- ==========================================================================
+       VIEW 2: ACTIVE GAMEPLAY SCREEN (Initially Hidden)
+       ========================================================================== -->
+  <div id="screen-game" class="w-full max-w-lg h-full flex flex-col justify-between items-center hidden animate-in fade-in duration-200">
+    
+    <!-- Top Game Bar (Clean: Title, Badge, and Pause/Menu Button) -->
+    <header class="w-full flex items-center justify-between gap-2 shrink-0 z-20">
+      <div class="flex items-center gap-2">
+        <h1 id="ui-game-title" class="text-base sm:text-lg font-black tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400 bg-clip-text text-transparent leading-none">
+          SUPER TIC-TAC-TOE
+        </h1>
+        <span id="ui-game-mode-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 border border-indigo-700 text-indigo-300">
+          Solo • Hard
+        </span>
+      </div>
+
+      <!-- Pause / Menu Button -->
+      <button id="btn-open-pause" class="p-1.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-md shadow-indigo-600/30 active:scale-95 flex items-center gap-1.5" title="Menu & Pause" aria-label="Menu & Pause">
+        <span>⏸️</span>
+        <span id="ui-btn-pause-label">Menu</span>
+      </button>
+    </header>
+
+    <!-- HUD: Score & Turn Indicators -->
+    <section class="w-full bg-slate-900/90 border border-slate-800/90 rounded-xl p-2 sm:p-2.5 backdrop-blur-md shadow-xl shrink-0 my-1">
+      <div class="flex justify-between items-center gap-2">
+        <!-- Player X Card -->
+        <div id="player-x-card" class="flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-cyan-500/60 bg-cyan-950/40 glow-box-x scale-[1.02]">
+          <span class="text-xl sm:text-2xl font-black text-cyan-400 glow-x font-mono leading-none">X</span>
+          <div class="leading-tight">
+            <div id="ui-player-x-name" class="text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider">Player X</div>
+            <div id="score-x" class="text-xs sm:text-sm font-extrabold text-cyan-300 font-mono">0 W</div>
+          </div>
+        </div>
+
+        <!-- Turn & Status Center Banner -->
+        <div id="turn-banner" class="flex-1 flex flex-col items-center justify-center text-center px-1">
+          <div id="turn-subtitle" class="text-[9px] sm:text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+            CURRENT TURN
+          </div>
+          <div id="turn-status-text" class="text-xs sm:text-sm font-black text-cyan-400 glow-x flex items-center gap-1.5 truncate">
+            <span>YOUR TURN</span>
+          </div>
+        </div>
+
+        <!-- Player O / AI Card -->
+        <div id="player-o-card" class="flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-transparent opacity-50">
+          <div class="text-right leading-tight">
+            <div id="ui-player-o-name" class="text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider">AI Master</div>
+            <div id="score-o" class="text-xs sm:text-sm font-extrabold text-rose-300 font-mono">0 W</div>
+          </div>
+          <span class="text-xl sm:text-2xl font-black text-rose-400 glow-o font-mono leading-none">O</span>
+        </div>
+      </div>
+
+      <!-- Move Directive Status Pill -->
+      <div id="directive-box" class="mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-emerald-950/40 text-emerald-300 border-emerald-800/50">
+        <span id="directive-icon">🎯</span>
+        <span id="directive-text">Free move! Pick any grid to play.</span>
+      </div>
+    </section>
+
+    <!-- Main 9x9 Strategic Board -->
+    <main class="flex-1 flex items-center justify-center w-full min-h-0 relative my-auto">
+      <div id="macro-board-container" class="relative aspect-square p-1.5 sm:p-2.5 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-sm"
+           style="width: min(94vw, 440px, calc(100dvh - 215px)); height: min(94vw, 440px, calc(100dvh - 215px));">
+        <div id="macro-board" class="grid grid-cols-3 gap-1.5 sm:gap-2.5 w-full h-full">
+          <!-- 9 Mini-boards injected dynamically by JS -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Centered In-Game Footer Tip (Only displayed during gameplay) -->
+    <footer class="w-full text-center text-[10px] sm:text-[11px] text-slate-400 font-medium py-1 shrink-0">
+      <span id="ui-game-footer-tip">💡 Think 2 moves ahead to dominate the grid!</span>
+    </footer>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 1: SETTINGS (ACCESSED FROM START MENU)
+       ========================================================================== -->
+  <div id="modal-settings" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4">
+      
+      <!-- Settings Header -->
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h2 id="modal-settings-title" class="text-lg sm:text-xl font-black text-slate-100 flex items-center gap-2">
+          <span>⚙️</span> Settings
+        </h2>
+        <button id="btn-close-settings-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Settings Controls -->
+      <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800 flex flex-col gap-3.5">
+        <div id="ui-settings-subtitle" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          Preferences & Audio
+        </div>
+        
+        <!-- Sound Toggle -->
+        <div class="flex items-center justify-between">
+          <span id="ui-settings-label-sound" class="text-xs font-semibold text-slate-300">Sound Effects</span>
+          <button id="btn-settings-sound-toggle" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-200 border border-slate-700 transition active:scale-95 flex items-center gap-1.5">
+            <span id="settings-sound-icon">🔊</span>
+            <span id="settings-sound-status">ON</span>
+          </button>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="flex items-center justify-between">
+          <span id="ui-settings-label-lang" class="text-xs font-semibold text-slate-300">Language</span>
+          <div class="relative">
+            <button id="btn-settings-lang" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold transition active:scale-95">
+              <span id="settings-lang-flag">🇺🇸</span>
+              <span id="settings-lang-code" class="font-mono">EN</span>
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <!-- Dropdown -->
+            <div id="dropdown-settings-lang" class="hidden absolute right-0 bottom-full mb-1 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="en"><span>🇺🇸</span> English</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="pt"><span>🇧🇷</span> Português</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="es"><span>🇪🇸</span> Español</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="hi"><span>🇮🇳</span> हिन्दी</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="zh"><span>🇨🇳</span> 简体中文</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Close Button -->
+      <button id="btn-close-settings" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-md transition active:scale-95 text-xs sm:text-sm">
+        Done
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 2: PAUSE MENU (ACCESSED DURING MATCH)
+       ========================================================================== -->
+  <div id="modal-pause" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4">
+      
+      <!-- Pause Header -->
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h2 id="modal-pause-title" class="text-lg sm:text-xl font-black text-slate-100 flex items-center gap-2">
+          <span>⏸️</span> Game Paused
+        </h2>
+        <button id="btn-close-pause-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col gap-2">
+        <button id="btn-pause-resume" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-sm">
+          <span>▶️</span>
+          <span id="ui-pause-resume">Resume Match</span>
+        </button>
+
+        <button id="btn-pause-restart" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+          <span>🔄</span>
+          <span id="ui-pause-restart">Restart Match</span>
+        </button>
+
+        <button id="btn-pause-menu" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+          <span>🏠</span>
+          <span id="ui-pause-menu">Main Menu</span>
+        </button>
+      </div>
+
+      <!-- In-Pause Settings Section -->
+      <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex flex-col gap-3">
+        <div id="ui-pause-preferences-title" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          Preferences & Audio
+        </div>
+        
+        <!-- Sound Toggle -->
+        <div class="flex items-center justify-between">
+          <span id="ui-pause-label-sound" class="text-xs font-semibold text-slate-300">Sound Effects</span>
+          <button id="btn-pause-sound-toggle" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-200 border border-slate-700 transition active:scale-95 flex items-center gap-1.5">
+            <span id="pause-sound-icon">🔊</span>
+            <span id="pause-sound-status">ON</span>
+          </button>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="flex items-center justify-between">
+          <span id="ui-pause-label-lang" class="text-xs font-semibold text-slate-300">Language</span>
+          <div class="relative">
+            <button id="btn-pause-lang" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold transition active:scale-95">
+              <span id="pause-lang-flag">🇺🇸</span>
+              <span id="pause-lang-code" class="font-mono">EN</span>
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <!-- Dropdown -->
+            <div id="dropdown-pause-lang" class="hidden absolute right-0 bottom-full mb-1 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="en"><span>🇺🇸</span> English</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="pt"><span>🇧🇷</span> Português</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="es"><span>🇪🇸</span> Español</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="hi"><span>🇮🇳</span> हिन्दी</button>
+              <button class="lang-opt w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-slate-800 text-slate-200 transition" data-lang="zh"><span>🇨🇳</span> 简体中文</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rules Shortcut -->
+        <button id="btn-pause-open-rules" class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-indigo-300 rounded-lg text-xs font-semibold border border-indigo-900/50 transition flex items-center justify-center gap-1.5">
+          <span>❓</span>
+          <span id="ui-pause-view-rules">How to Play</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 3: HOW TO PLAY / RULES (Fully Localized including Diagram)
+       ========================================================================== -->
+  <div id="modal-rules" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 hidden animate-in fade-in duration-200">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90dvh] flex flex-col justify-between overflow-hidden">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h2 id="modal-rules-title" class="text-base sm:text-xl font-black text-slate-100 flex items-center gap-2">
+          <span>🧠</span> How to Play Super Tic-Tac-Toe
+        </h2>
+        <button id="btn-close-rules-x" class="text-slate-400 hover:text-white p-1 rounded-lg transition" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Rules Content & Fully Translated Visual Schematic -->
+      <div class="overflow-y-auto pr-1 my-3 space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        
+        <!-- Interactive / Visual Directive Diagram -->
+        <div class="bg-slate-950/80 border border-indigo-500/40 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3">
+          <div class="grid grid-cols-3 gap-1 w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-slate-900 p-1 rounded-lg border border-slate-800">
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">1</div>
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">2</div>
+            <div class="bg-cyan-500/30 border border-cyan-400 text-cyan-300 font-bold rounded flex items-center justify-center text-xs animate-pulse">X</div>
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">4</div>
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">5</div>
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">6</div>
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">7</div>
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">8</div>
+            <div class="bg-slate-800/80 rounded flex items-center justify-center text-[10px] text-slate-500">9</div>
+          </div>
+          <div class="text-[11px] sm:text-xs">
+            <div id="rule-diagram-title" class="font-bold text-cyan-400 mb-0.5">⚡ The Golden Rule in action:</div>
+            <div id="rule-diagram-desc">Playing in the <strong class="text-cyan-300">top-right cell</strong> sends your opponent directly into the <strong class="text-indigo-400">top-right mini-board</strong>!</div>
+          </div>
+        </div>
+
+        <!-- Rule Items -->
+        <div class="space-y-2.5">
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">1</span>
+            <div>
+              <div id="rule-item-1-title" class="font-bold text-slate-100">The 9x9 Concept</div>
+              <div id="rule-item-1-desc" class="text-slate-400 text-[11px] sm:text-xs">There are 9 mini-boards inside 1 giant macro-grid. You must think globally and locally simultaneously.</div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">2</span>
+            <div>
+              <div id="rule-item-2-title" class="font-bold text-slate-100">The Golden Rule (Guiding)</div>
+              <div id="rule-item-2-desc" class="text-slate-400 text-[11px] sm:text-xs">Your move dictates which mini-board your rival MUST play in next. Always check where you are sending them!</div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">3</span>
+            <div>
+              <div id="rule-item-3-title" class="font-bold text-slate-100">Conquering Mini-Boards</div>
+              <div id="rule-item-3-desc" class="text-slate-400 text-[11px] sm:text-xs">Get 3 marks in a row inside any mini-board to claim that entire grid for your symbol.</div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">4</span>
+            <div>
+              <div id="rule-item-4-title" class="font-bold text-slate-100">Free Moves</div>
+              <div id="rule-item-4-desc" class="text-slate-400 text-[11px] sm:text-xs">If directed to a mini-board that is already won or completely tied, you gain a Free Move to play anywhere!</div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">🏆</span>
+            <div>
+              <div id="rule-item-5-title" class="font-bold text-emerald-300">Winning the Match</div>
+              <div id="rule-item-5-desc" class="text-slate-400 text-[11px] sm:text-xs">Win 3 mini-boards in a row (horizontal, vertical, or diagonal) across the giant macro-board to win!</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <button id="btn-close-rules" class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-xs sm:text-sm">
+        Got it! Let's Play
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 4: GAME OVER / WINNER MODAL (Clean: No "View Board" button)
+       ========================================================================== -->
+  <div id="modal-winner" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
+      <div id="winner-glow-bg" class="absolute -top-16 left-1/2 -translate-x-1/2 w-40 h-40 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none"></div>
+
+      <div id="winner-icon" class="text-6xl sm:text-7xl mb-2 animate-bounce">🏆</div>
+      <h2 id="winner-title" class="text-2xl sm:text-3xl font-black mb-1 text-cyan-400 glow-x">
+        VICTORY!
+      </h2>
+      <p id="winner-desc" class="text-slate-300 text-xs sm:text-sm mb-6 leading-relaxed">
+        Player X conquered 3 mini-boards in a row!
+      </p>
+
+      <div class="flex flex-col gap-2.5">
+        <button id="btn-modal-restart" class="w-full py-3.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 hover:from-indigo-400 hover:to-pink-500 text-white font-extrabold rounded-xl shadow-lg transition transform active:scale-95 text-sm sm:text-base">
+          🎮 Play Again
+        </button>
+        <button id="btn-modal-to-menu" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition active:scale-95 text-xs sm:text-sm">
+          🏠 Main Menu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       LOGIC & JAVASCRIPT ENGINE
+       ========================================================================== */
+  -->
+  <script>
+    /* ==========================================================================
+       1. AUDIO ENGINE (Web Audio API - Zero External Dependencies)
+       ========================================================================== */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.ctx = new AudioContextClass();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playClick(isO = false) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        if (isO) {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(180, now + 0.08);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        } else {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(780, now + 0.07);
+          gain.gain.setValueAtTime(0.16, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        }
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      }
+
+      playMiniWin() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const freqs = [523.25, 659.25, 783.99, 1046.50];
+        freqs.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          const startTime = now + idx * 0.05;
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.14, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.25);
+        });
+      }
+
+      playGameWin() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 783.99, 659.25, 880.00, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          const startTime = now + idx * 0.09;
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.25, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.45);
+        });
+      }
+
+      playGameLoss() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [349.23, 293.66, 233.08, 196.00];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          const startTime = now + idx * 0.12;
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.12, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.3);
+        });
+      }
+
+      playTie() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        [440, 415.30].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+          gain.gain.setValueAtTime(0.15, now + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.1);
+          osc.stop(now + idx * 0.1 + 0.3);
+        });
+      }
+
+      playError() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    /* ==========================================================================
+       2. MULTILINGUAL SUPPORT (i18n)
+       ========================================================================== */
+    const I18N = {
+      en: {
+        code: 'EN',
+        flag: '🇺🇸',
+        title: 'SUPER TIC-TAC-TOE',
+        subtitle: 'Ultimate Strategic Grid',
+        settingsTitle: 'Settings',
+        settingsBtn: 'Settings',
+        rulesBtn: 'Rules',
+        selectMode: '1. Select Game Mode',
+        selectDiff: '2. AI Difficulty Level',
+        modeSoloTitle: 'Solo vs AI',
+        modeSoloDesc: 'Player X vs AI Bot',
+        modePvpTitle: '2 Players (Duo)',
+        modePvpDesc: 'Pass & Play Local',
+        diffEasy: 'Easy',
+        diffMed: 'Med',
+        diffHard: 'Hard',
+        diffExtreme: 'Extreme',
+        startMatch: 'START MATCH',
+        footerTip: '💡 Think 2 moves ahead to dominate the grid!',
+        doneBtn: 'Done',
+        
+        // In-game & Pause
+        pauseMenu: 'Menu',
+        gamePaused: 'Game Paused',
+        resumeMatch: 'Resume Match',
+        restartMatch: 'Restart Match',
+        mainMenu: 'Main Menu',
+        preferencesSection: 'Preferences & Audio',
+        soundEffects: 'Sound Effects',
+        soundOn: 'ON',
+        soundOff: 'MUTED',
+        language: 'Language',
+        playerX: 'Player X',
+        playerYou: 'You (X)',
+        playerO: 'Player O',
+        aiBot: 'AI (Bot)',
+        aiMaster: 'AI Master',
+        turnCurrent: 'CURRENT TURN',
+        yourTurn: 'YOUR TURN',
+        aiThinking: 'AI THINKING...',
+        turnPlayerX: 'PLAYER X TURN',
+        turnPlayerO: 'PLAYER O TURN',
+        freeMove: 'Free move! Pick any open grid.',
+        targetGrid: 'Target grid: {name}',
+        boardNames: [
+          'Top-Left', 'Top-Center', 'Top-Right',
+          'Center-Left', 'Center', 'Center-Right',
+          'Bottom-Left', 'Bottom-Center', 'Bottom-Right'
+        ],
+
+        // Rules Modal & Visual Diagram
+        howToPlayTitle: 'How to Play Super Tic-Tac-Toe',
+        ruleDiagramTitle: '⚡ The Golden Rule in action:',
+        ruleDiagramDesc: 'Playing in the <strong class="text-cyan-300">top-right cell</strong> sends your opponent directly into the <strong class="text-indigo-400">top-right mini-board</strong>!',
+        rule1Title: '1. The 9x9 Concept',
+        rule1Desc: 'There are 9 mini-boards inside 1 giant macro-grid. You must think globally and locally simultaneously.',
+        rule2Title: '2. The Golden Rule (Guiding)',
+        rule2Desc: 'Your move dictates which mini-board your rival MUST play in next. Always check where you are sending them!',
+        rule3Title: '3. Conquering Mini-Boards',
+        rule3Desc: 'Get 3 marks in a row inside any mini-board to claim that entire grid for your symbol.',
+        rule4Title: '4. Free Moves',
+        rule4Desc: 'If directed to a mini-board that is already won or completely tied, you gain a Free Move to play anywhere!',
+        rule5Title: '🏆 Winning the Match',
+        rule5Desc: 'Win 3 mini-boards in a row (horizontal, vertical, or diagonal) across the giant macro-board to win!',
+        gotIt: "Got it! Let's Play",
+        victory: 'VICTORY!',
+        defeat: 'DEFEAT!',
+        draw: 'DRAW!',
+        winDescHuman: 'You outsmarted the AI Master and conquered the macro-grid!',
+        winDescAi: 'The AI calculated the winning strategy this time.',
+        winDescX: 'Player X conquered 3 mini-boards in a row!',
+        winDescO: 'Player O conquered 3 mini-boards in a row!',
+        drawDesc: 'Stalemate! Neither player could complete 3 boards in a row.',
+        playAgain: '🎮 Play Again'
+      },
+      pt: {
+        code: 'PT',
+        flag: '🇧🇷',
+        title: 'SUPER JOGO DA VELHA',
+        subtitle: 'Grelha Estratégica Suprema',
+        settingsTitle: 'Configurações',
+        settingsBtn: 'Ajustes',
+        rulesBtn: 'Regras',
+        selectMode: '1. Escolha o Modo de Jogo',
+        selectDiff: '2. Nível de Dificuldade da IA',
+        modeSoloTitle: 'Solo vs IA',
+        modeSoloDesc: 'Você (X) contra o Bot (O)',
+        modePvpTitle: '2 Jogadores (Duo)',
+        modePvpDesc: 'Disputa local no mesmo aparelho',
+        diffEasy: 'Fácil',
+        diffMed: 'Médio',
+        diffHard: 'Difícil',
+        diffExtreme: 'Extremo',
+        startMatch: 'INICIAR PARTIDA',
+        footerTip: '💡 Pense 2 jogadas à frente para dominar o tabuleiro!',
+        doneBtn: 'Concluído',
+        
+        // In-game & Pause
+        pauseMenu: 'Menu',
+        gamePaused: 'Jogo Pausado',
+        resumeMatch: 'Continuar Partida',
+        restartMatch: 'Reiniciar Partida',
+        mainMenu: 'Menu Principal',
+        preferencesSection: 'Preferências & Áudio',
+        soundEffects: 'Efeitos Sonoros',
+        soundOn: 'LIGADO',
+        soundOff: 'MUDO',
+        language: 'Idioma',
+        playerX: 'Jogador X',
+        playerYou: 'Você (X)',
+        playerO: 'Jogador O',
+        aiBot: 'IA (Bot)',
+        aiMaster: 'IA Master',
+        turnCurrent: 'VEZ DE JOGAR',
+        yourTurn: 'SEU TURNO',
+        aiThinking: 'IA PENSANDO...',
+        turnPlayerX: 'VEZ DO JOGADOR X',
+        turnPlayerO: 'VEZ DO JOGADOR O',
+        freeMove: 'Jogada livre! Escolha qualquer mini-tabuleiro aberto.',
+        targetGrid: 'Grade alvo: {name}',
+        boardNames: [
+          'Topo-Esquerda', 'Topo-Centro', 'Topo-Direita',
+          'Centro-Esquerda', 'Centro', 'Centro-Direita',
+          'Baixo-Esquerda', 'Baixo-Centro', 'Baixo-Direita'
+        ],
+
+        // Rules Modal & Visual Diagram
+        howToPlayTitle: 'Como Jogar o Jogo da Velha Supremo',
+        ruleDiagramTitle: '⚡ A Regra de Ouro em ação:',
+        ruleDiagramDesc: 'Jogar na <strong class="text-cyan-300">célula superior direita</strong> envia seu oponente diretamente para o <strong class="text-indigo-400">mini-tabuleiro superior direito</strong>!',
+        rule1Title: '1. O Conceito 9x9',
+        rule1Desc: 'Existem 9 mini-tabuleiros dentro de 1 grande tabuleiro macro. Pense local e globalmente ao mesmo tempo.',
+        rule2Title: '2. A Regra de Ouro (Direcionamento)',
+        rule2Desc: 'A célula onde você joga determina em qual mini-tabuleiro seu oponente DEVE jogar a seguir!',
+        rule3Title: '3. Conquistando Mini-Tabuleiros',
+        rule3Desc: 'Faça 3 marcas em linha dentro de qualquer mini-tabuleiro para conquistar aquele quadrado na grade principal.',
+        rule4Title: '4. Jogadas Livres',
+        rule4Desc: 'Se você for enviado para um tabuleiro já ganho ou empatado, ganha uma Jogada Livre em qualquer lugar!',
+        rule5Title: '🏆 Vencendo a Partida',
+        rule5Desc: 'Conquiste 3 mini-tabuleiros em linha (horizontal, vertical ou diagonal) no macro-tabuleiro para ser o campeão!',
+        gotIt: 'Entendi! Vamos ao Jogo',
+        victory: 'VITÓRIA!',
+        defeat: 'DERROTA!',
+        draw: 'EMPATE!',
+        winDescHuman: 'Você superou a Inteligência Artificial e dominou a grade principal!',
+        winDescAi: 'A IA encontrou o caminho tático perfeito desta vez.',
+        winDescX: 'O Jogador X conquistou 3 mini-tabuleiros em linha!',
+        winDescO: 'O Jogador O conquistou 3 mini-tabuleiros em linha!',
+        drawDesc: 'Empate supremo! Nenhum jogador conseguiu completar a trinca principal.',
+        playAgain: '🎮 Jogar Novamente'
+      },
+      es: {
+        code: 'ES',
+        flag: '🇪🇸',
+        title: 'SÚPER TRES EN RAYA',
+        subtitle: 'Cuadrícula Estratégica Definitiva',
+        settingsTitle: 'Configuración',
+        settingsBtn: 'Ajustes',
+        rulesBtn: 'Reglas',
+        selectMode: '1. Selecciona Modo de Juego',
+        selectDiff: '2. Dificultad de la IA',
+        modeSoloTitle: 'Solo vs IA',
+        modeSoloDesc: 'Tú (X) contra el Bot (O)',
+        modePvpTitle: '2 Jugadores (Dúo)',
+        modePvpDesc: 'Partida local compartida',
+        diffEasy: 'Fácil',
+        diffMed: 'Medio',
+        diffHard: 'Difícil',
+        diffExtreme: 'Extremo',
+        startMatch: 'INICIAR PARTIDA',
+        footerTip: '💡 ¡Piensa 2 jugadas por delante para dominar!',
+        doneBtn: 'Listo',
+        
+        // In-game & Pause
+        pauseMenu: 'Menú',
+        gamePaused: 'Juego Pausado',
+        resumeMatch: 'Continuar Partida',
+        restartMatch: 'Reiniciar Partida',
+        mainMenu: 'Menú Principal',
+        preferencesSection: 'Preferencias y Audio',
+        soundEffects: 'Efectos de Sonido',
+        soundOn: 'ACTIVO',
+        soundOff: 'SILENCIO',
+        language: 'Idioma',
+        playerX: 'Jugador X',
+        playerYou: 'Tú (X)',
+        playerO: 'Jugador O',
+        aiBot: 'IA (Bot)',
+        aiMaster: 'IA Máster',
+        turnCurrent: 'TURNO ACTUAL',
+        yourTurn: 'TU TURNO',
+        aiThinking: 'IA PENSANDO...',
+        turnPlayerX: 'TURNO JUGADOR X',
+        turnPlayerO: 'TURNO JUGADOR O',
+        freeMove: '¡Tiro libre! Elige cualquier cuadrícula abierta.',
+        targetGrid: 'Cuadrícula objetivo: {name}',
+        boardNames: [
+          'Arriba-Izquierda', 'Arriba-Centro', 'Arriba-Derecha',
+          'Centro-Izquierda', 'Centro', 'Centro-Derecha',
+          'Abajo-Izquierda', 'Abajo-Centro', 'Abajo-Derecha'
+        ],
+
+        // Rules Modal & Visual Diagram
+        howToPlayTitle: 'Cómo Jugar al Súper Tres en Raya',
+        ruleDiagramTitle: '⚡ La Regla de Oro en acción:',
+        ruleDiagramDesc: '¡Jugar en la <strong class="text-cyan-300">casilla superior derecha</strong> envía a tu oponente al <strong class="text-indigo-400">mini-tablero superior derecho</strong>!',
+        rule1Title: '1. El Concepto 9x9',
+        rule1Desc: 'Hay 9 mini-tableros dentro de 1 macro-tablero gigante. Piensa en grande y en pequeño a la vez.',
+        rule2Title: '2. La Regla de Oro (Dirección)',
+        rule2Desc: '¡La casilla que elijas determina en qué mini-tablero DEBE jugar tu rival a continuación!',
+        rule3Title: '3. Conquistar Mini-Tableros',
+        rule3Desc: 'Haz 3 en línea en cualquier mini-tablero para reclamar esa casilla en el macro-tablero.',
+        rule4Title: '4. Tiros Libres',
+        rule4Desc: 'Si te mandan a un mini-tablero ya ganado o empatado, ¡obtienes un Tiro Libre en cualquier parte!',
+        rule5Title: '🏆 Ganar la Partida',
+        rule5Desc: '¡Gana 3 mini-tableros en línea (horizontal, vertical o diagonal) en el tablero gigante para ganar!',
+        gotIt: '¡Entendido! A Jugar',
+        victory: '¡VICTORIA!',
+        defeat: '¡DERROTA!',
+        draw: '¡EMPATE!',
+        winDescHuman: '¡Superaste a la IA y conquistaste la cuadrícula principal!',
+        winDescAi: 'La IA calculó la mejor estrategia esta vez.',
+        winDescX: '¡El Jugador X conquistó 3 mini-tableros en línea!',
+        winDescO: '¡El Jugador O conquistó 3 mini-tableros en línea!',
+        drawDesc: '¡Tablas! Ningún jugador pudo completar la línea principal.',
+        playAgain: '🎮 Jugar de Nuevo'
+      },
+      hi: {
+        code: 'HI',
+        flag: '🇮🇳',
+        title: 'सुपर टिक-टैक-टो',
+        subtitle: 'सर्वश्रेष्ठ रणनीतिक ग्रिड',
+        settingsTitle: 'सेटिंग्स',
+        settingsBtn: 'सेटिंग्स',
+        rulesBtn: 'नियम',
+        selectMode: '1. गेम मोड चुनें',
+        selectDiff: '2. AI कठिनाई स्तर',
+        modeSoloTitle: 'एकल बनाम AI',
+        modeSoloDesc: 'खिलाड़ी X बनाम AI बॉट',
+        modePvpTitle: '2 खिलाड़ी (डुओ)',
+        modePvpDesc: 'स्थानीय पास और खेलें',
+        diffEasy: 'आसान',
+        diffMed: 'मध्यम',
+        diffHard: 'कठिन',
+        diffExtreme: 'मास्टर',
+        startMatch: 'मैच शुरू करें',
+        footerTip: '💡 ग्रिड पर हावी होने के लिए 2 चाल आगे सोचें!',
+        doneBtn: 'संपन्न',
+        
+        // In-game & Pause
+        pauseMenu: 'मेनू',
+        gamePaused: 'खेल रुका हुआ है',
+        resumeMatch: 'जारी रखें',
+        restartMatch: 'मैच रीस्टार्ट करें',
+        mainMenu: 'मुख्य मेनू',
+        preferencesSection: 'प्राथमिकताएं और ऑडियो',
+        soundEffects: 'ध्वनि प्रभाव',
+        soundOn: 'चालू',
+        soundOff: 'बंद',
+        language: 'भाषा',
+        playerX: 'खिलाड़ी X',
+        playerYou: 'आप (X)',
+        playerO: 'खिलाड़ी O',
+        aiBot: 'AI बॉट',
+        aiMaster: 'AI मास्टर',
+        turnCurrent: 'वर्तमान चाल',
+        yourTurn: 'आपकी बारी',
+        aiThinking: 'AI सोच रहा है...',
+        turnPlayerX: 'खिलाड़ी X की बारी',
+        turnPlayerO: 'खिलाड़ी O की बारी',
+        freeMove: 'मुक्त चाल! कोई भी खुला ग्रिड चुनें।',
+        targetGrid: 'लक्षित ग्रिड: {name}',
+        boardNames: [
+          'ऊपर-बाएं', 'ऊपर-मध्य', 'ऊपर-दाएं',
+          'मध्य-बाएं', 'केंद्र', 'मध्य-दाएं',
+          'नीचे-बाएं', 'नीचे-मध्य', 'नीचे-दाएं'
+        ],
+
+        // Rules Modal & Visual Diagram
+        howToPlayTitle: 'सुपर टिक-टैक-टो कैसे खेलें',
+        ruleDiagramTitle: '⚡ स्वर्णिम नियम क्रिया में:',
+        ruleDiagramDesc: '<strong>ऊपर-दाएं कोशिका</strong> में खेलने से आपका प्रतिद्वंद्वी सीधे <strong>ऊपर-दाएं मिनी-बोर्ड</strong> में पहुंच जाता है!',
+        rule1Title: '1. 9x9 अवधारणा',
+        rule1Desc: '1 विशाल मैक्रो-ग्रिड के अंदर 9 मिनी-बोर्ड हैं। आपको एक साथ योजना बनानी होगी।',
+        rule2Title: '2. स्वर्णिम नियम (मार्गदर्शन)',
+        rule2Desc: 'आपकी चाल तय करती है कि प्रतिद्वंद्वी को आगे किस मिनी-बोर्ड में खेलना होगा!',
+        rule3Title: '3. मिनी-बोर्ड जीतना',
+        rule3Desc: 'पूरे ग्रिड पर दावा करने के लिए किसी भी मिनी-बोर्ड में लगातार 3 अंक प्राप्त करें।',
+        rule4Title: '4. मुक्त चालें',
+        rule4Desc: 'यदि किसी जीते हुए या भरे बोर्ड पर भेजा जाता है, तो आप कहीं भी खेल सकते हैं!',
+        rule5Title: '🏆 मैच जीतना',
+        rule5Desc: 'मैच जीतने के लिए मुख्य ग्रिड पर लगातार 3 मिनी-बोर्ड जीतें!',
+        gotIt: 'समझ गया! खेलें',
+        victory: 'शानदार जीत!',
+        defeat: 'हार!',
+        draw: 'टाई!',
+        winDescHuman: 'आपने AI मास्टर को पछाड़ दिया और मैक्रो-ग्रिड जीता!',
+        winDescAi: 'इस बार AI ने बाज़ी मार ली।',
+        winDescX: 'खिलाड़ी X ने लगातार 3 बोर्ड जीते!',
+        winDescO: 'खिलाड़ी O ने लगातार 3 बोर्ड जीते!',
+        drawDesc: 'कोई भी 3 बोर्ड की रेखा पूरी नहीं कर सका।',
+        playAgain: '🎮 फिर से खेलें'
+      },
+      zh: {
+        code: 'ZH',
+        flag: '🇨🇳',
+        title: '超级井字棋',
+        subtitle: '终极战略九宫格',
+        settingsTitle: '设置',
+        settingsBtn: '设置',
+        rulesBtn: '规则',
+        selectMode: '1. 选择游戏模式',
+        selectDiff: '2. AI 战术难度',
+        modeSoloTitle: '单人 vs AI',
+        modeSoloDesc: '玩家 X 对战智能 AI',
+        modePvpTitle: '双人同屏 (Duo)',
+        modePvpDesc: '同设备本地轮流下棋',
+        diffEasy: '简单',
+        diffMed: '中等',
+        diffHard: '困难',
+        diffExtreme: '大师级',
+        startMatch: '进入游戏对决',
+        footerTip: '💡 深谋两步，统领全盘战局！',
+        doneBtn: '完成',
+        
+        // In-game & Pause
+        pauseMenu: '菜单',
+        gamePaused: '对决已暂停',
+        resumeMatch: '继续对决',
+        restartMatch: '重新开局',
+        mainMenu: '返回主菜单',
+        preferencesSection: '偏好与音效设置',
+        soundEffects: '音效开关',
+        soundOn: '开启',
+        soundOff: '静音',
+        language: '界面语言',
+        playerX: '玩家 X',
+        playerYou: '你 (X)',
+        playerO: '玩家 O',
+        aiBot: 'AI 电脑',
+        aiMaster: 'AI 大师',
+        turnCurrent: '当前回合',
+        yourTurn: '你的回合',
+        aiThinking: 'AI 思考中...',
+        turnPlayerX: '玩家 X 回合',
+        turnPlayerO: '玩家 O 回合',
+        freeMove: '自由落子！任选有效九宫格。',
+        targetGrid: '目标九宫格: {name}',
+        boardNames: [
+          '左上', '中上', '右上',
+          '左中', '正中', '右中',
+          '左下', '中下', '右下'
+        ],
+
+        // Rules Modal & Visual Diagram
+        howToPlayTitle: '超级井字棋 游戏规则',
+        ruleDiagramTitle: '⚡ 黄金引导规则演示:',
+        ruleDiagramDesc: '在<strong class="text-cyan-300">右上角格子</strong>落子，将强制对手直接传送至<strong class="text-indigo-400">右上角微型棋盘</strong>！',
+        rule1Title: '1. 9x9 双重架构',
+        rule1Desc: '宏观大棋盘包含 9 个微型九宫格，需兼顾局部与全局战术。',
+        rule2Title: '2. 黄金引导规则',
+        rule2Desc: '你在小格子中的落子位置，强制决定对手下一步必须进入哪个九宫格！',
+        rule3Title: '3. 占领微型棋盘',
+        rule3Desc: '在任何微型九宫格中达成三子连珠，即可拿下该宏观板块。',
+        rule4Title: '4. 自由落子特权',
+        rule4Desc: '若被引导至已分胜负或打平的九宫格，你将获得特权，可任选全盘任意空格！',
+        rule5Title: '🏆 夺取总冠军',
+        rule5Desc: '在宏观大棋盘上连成 3 个获胜九宫格（横、竖、斜）即锁定终极胜利！',
+        gotIt: '了解！开始对决',
+        victory: '终极胜利！',
+        defeat: '惜败！',
+        draw: '平局！',
+        winDescHuman: '你运筹帷幄，成功战胜了 AI 大师！',
+        winDescAi: 'AI 算法本次在战术上更胜一筹。',
+        winDescX: '玩家 X 成功达成宏观三子连珠！',
+        winDescO: '玩家 O 成功达成宏观三子连珠！',
+        drawDesc: '棋逢对手！无人能在宏观大盘连成三线。',
+        playAgain: '🎮 再来一局'
+      }
+    };
+
+    /* ==========================================================================
+       3. GAME STATE & PREFERENCES
+       ========================================================================== */
+    const WIN_COMBOS = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+      [0, 4, 8], [2, 4, 6]             // Diagonals
+    ];
+
+    const STORAGE_KEY_LANG = 'super_ttt_lang';
+    const STORAGE_KEY_MODE = 'super_ttt_mode';
+    const STORAGE_KEY_DIFF = 'super_ttt_diff';
+    const STORAGE_KEY_SOUND = 'super_ttt_sound';
+    const STORAGE_KEY_SCORES = 'super_ttt_scores';
+
+    let currentLang = localStorage.getItem(STORAGE_KEY_LANG) || 'en';
+    if (!I18N[currentLang]) currentLang = 'en';
+
+    let gameMode = localStorage.getItem(STORAGE_KEY_MODE) || 'solo';
+    let difficulty = localStorage.getItem(STORAGE_KEY_DIFF) || 'hard';
+    let soundEnabled = localStorage.getItem(STORAGE_KEY_SOUND) !== 'false';
+    sound.enabled = soundEnabled;
+
+    let savedScores = {
+      solo: { player: 0, ai: 0 },
+      pvp: { x: 0, o: 0 }
+    };
+    try {
+      const parsedScores = JSON.parse(localStorage.getItem(STORAGE_KEY_SCORES));
+      if (parsedScores && parsedScores.solo && parsedScores.pvp) {
+        savedScores = parsedScores;
+      }
+    } catch (e) {
+      // defaults
+    }
+
+    // Active Match State
+    let currentPlayer = 'X';
+    let activeBoardIndex = null;
+    let boards = Array(9).fill(null).map(() => Array(9).fill(''));
+    let macroBoard = Array(9).fill('');
+    let winner = null;
+    let isAiThinking = false;
+
+    /* ==========================================================================
+       4. DOM REFERENCES
+       ========================================================================== */
+    const el = {
+      // Screens
+      screenMenu: document.getElementById('screen-menu'),
+      screenGame: document.getElementById('screen-game'),
+
+      // Menu Elements
+      uiMenuTitle: document.getElementById('ui-menu-title'),
+      uiMenuSubtitle: document.getElementById('ui-menu-subtitle'),
+      btnMenuSettings: document.getElementById('btn-menu-settings'),
+      uiMenuBtnSettings: document.getElementById('ui-menu-btn-settings'),
+      btnMenuRules: document.getElementById('btn-menu-rules'),
+      uiMenuBtnRules: document.getElementById('ui-menu-btn-rules'),
+      uiMenuLabelMode: document.getElementById('ui-menu-label-mode'),
+      menuOptSolo: document.getElementById('menu-opt-solo'),
+      uiMenuModeSoloTitle: document.getElementById('ui-menu-mode-solo-title'),
+      uiMenuModeSoloDesc: document.getElementById('ui-menu-mode-solo-desc'),
+      menuOptPvp: document.getElementById('menu-opt-pvp'),
+      uiMenuModePvpTitle: document.getElementById('ui-menu-mode-pvp-title'),
+      uiMenuModePvpDesc: document.getElementById('ui-menu-mode-pvp-desc'),
+      menuDiffSection: document.getElementById('menu-difficulty-section'),
+      uiMenuLabelDiff: document.getElementById('ui-menu-label-diff'),
+      menuDiffButtons: document.querySelectorAll('.menu-diff-btn'),
+      btnStartGame: document.getElementById('btn-start-game'),
+      uiMenuBtnPlay: document.getElementById('ui-menu-btn-play'),
+
+      // Game Header & Controls
+      uiGameTitle: document.getElementById('ui-game-title'),
+      uiGameModeBadge: document.getElementById('ui-game-mode-badge'),
+      btnOpenPause: document.getElementById('btn-open-pause'),
+      uiBtnPauseLabel: document.getElementById('ui-btn-pause-label'),
+      playerXCard: document.getElementById('player-x-card'),
+      playerOCard: document.getElementById('player-o-card'),
+      uiPlayerXName: document.getElementById('ui-player-x-name'),
+      uiPlayerOName: document.getElementById('ui-player-o-name'),
+      scoreX: document.getElementById('score-x'),
+      scoreO: document.getElementById('score-o'),
+      turnSubtitle: document.getElementById('turn-subtitle'),
+      turnStatusText: document.getElementById('turn-status-text'),
+      directiveBox: document.getElementById('directive-box'),
+      directiveIcon: document.getElementById('directive-icon'),
+      directiveText: document.getElementById('directive-text'),
+      macroBoard: document.getElementById('macro-board'),
+      uiGameFooterTip: document.getElementById('ui-game-footer-tip'),
+
+      // Settings Modal (Menu)
+      modalSettings: document.getElementById('modal-settings'),
+      modalSettingsTitle: document.getElementById('modal-settings-title'),
+      btnCloseSettingsX: document.getElementById('btn-close-settings-x'),
+      btnCloseSettings: document.getElementById('btn-close-settings'),
+      uiSettingsSubtitle: document.getElementById('ui-settings-subtitle'),
+      uiSettingsLabelSound: document.getElementById('ui-settings-label-sound'),
+      btnSettingsSoundToggle: document.getElementById('btn-settings-sound-toggle'),
+      settingsSoundIcon: document.getElementById('settings-sound-icon'),
+      settingsSoundStatus: document.getElementById('settings-sound-status'),
+      uiSettingsLabelLang: document.getElementById('ui-settings-label-lang'),
+      btnSettingsLang: document.getElementById('btn-settings-lang'),
+      settingsLangFlag: document.getElementById('settings-lang-flag'),
+      settingsLangCode: document.getElementById('settings-lang-code'),
+      dropdownSettingsLang: document.getElementById('dropdown-settings-lang'),
+
+      // Pause Modal (In-game)
+      modalPause: document.getElementById('modal-pause'),
+      modalPauseTitle: document.getElementById('modal-pause-title'),
+      btnClosePauseX: document.getElementById('btn-close-pause-x'),
+      btnPauseResume: document.getElementById('btn-pause-resume'),
+      uiPauseResume: document.getElementById('ui-pause-resume'),
+      btnPauseRestart: document.getElementById('btn-pause-restart'),
+      uiPauseRestart: document.getElementById('ui-pause-restart'),
+      btnPauseMenu: document.getElementById('btn-pause-menu'),
+      uiPauseMenu: document.getElementById('ui-pause-menu'),
+      uiPausePreferencesTitle: document.getElementById('ui-pause-preferences-title'),
+      uiPauseLabelSound: document.getElementById('ui-pause-label-sound'),
+      btnPauseSoundToggle: document.getElementById('btn-pause-sound-toggle'),
+      pauseSoundIcon: document.getElementById('pause-sound-icon'),
+      pauseSoundStatus: document.getElementById('pause-sound-status'),
+      uiPauseLabelLang: document.getElementById('ui-pause-label-lang'),
+      btnPauseLang: document.getElementById('btn-pause-lang'),
+      pauseLangFlag: document.getElementById('pause-lang-flag'),
+      pauseLangCode: document.getElementById('pause-lang-code'),
+      dropdownPauseLang: document.getElementById('dropdown-pause-lang'),
+      btnPauseOpenRules: document.getElementById('btn-pause-open-rules'),
+      uiPauseViewRules: document.getElementById('ui-pause-view-rules'),
+
+      // Rules Modal
+      modalRules: document.getElementById('modal-rules'),
+      modalRulesTitle: document.getElementById('modal-rules-title'),
+      btnCloseRules: document.getElementById('btn-close-rules'),
+      btnCloseRulesX: document.getElementById('btn-close-rules-x'),
+      ruleDiagramTitle: document.getElementById('rule-diagram-title'),
+      ruleDiagramDesc: document.getElementById('rule-diagram-desc'),
+      ruleItem1Title: document.getElementById('rule-item-1-title'),
+      ruleItem1Desc: document.getElementById('rule-item-1-desc'),
+      ruleItem2Title: document.getElementById('rule-item-2-title'),
+      ruleItem2Desc: document.getElementById('rule-item-2-desc'),
+      ruleItem3Title: document.getElementById('rule-item-3-title'),
+      ruleItem3Desc: document.getElementById('rule-item-3-desc'),
+      ruleItem4Title: document.getElementById('rule-item-4-title'),
+      ruleItem4Desc: document.getElementById('rule-item-4-desc'),
+      ruleItem5Title: document.getElementById('rule-item-5-title'),
+      ruleItem5Desc: document.getElementById('rule-item-5-desc'),
+
+      // Winner Modal
+      modalWinner: document.getElementById('modal-winner'),
+      winnerIcon: document.getElementById('winner-icon'),
+      winnerTitle: document.getElementById('winner-title'),
+      winnerDesc: document.getElementById('winner-desc'),
+      winnerGlowBg: document.getElementById('winner-glow-bg'),
+      btnModalRestart: document.getElementById('btn-modal-restart'),
+      btnModalToMenu: document.getElementById('btn-modal-to-menu')
+    };
+
+    /* ==========================================================================
+       5. LOCALIZATION RENDERER
+       ========================================================================== */
+    function applyLanguage(lang) {
+      if (!I18N[lang]) lang = 'en';
+      currentLang = lang;
+      localStorage.setItem(STORAGE_KEY_LANG, lang);
+
+      const t = I18N[lang];
+      document.documentElement.lang = lang;
+
+      // Menu Texts
+      el.uiMenuTitle.textContent = t.title;
+      el.uiMenuSubtitle.textContent = t.subtitle;
+      el.uiMenuBtnSettings.textContent = t.settingsBtn;
+      el.uiMenuBtnRules.textContent = t.rulesBtn;
+      el.uiMenuLabelMode.textContent = t.selectMode;
+      el.uiMenuLabelDiff.textContent = t.selectDiff;
+      el.uiMenuModeSoloTitle.textContent = t.modeSoloTitle;
+      el.uiMenuModeSoloDesc.textContent = t.modeSoloDesc;
+      el.uiMenuModePvpTitle.textContent = t.modePvpTitle;
+      el.uiMenuModePvpDesc.textContent = t.modePvpDesc;
+
+      document.getElementById('menu-diff-easy').textContent = t.diffEasy;
+      document.getElementById('menu-diff-medium').textContent = t.diffMed;
+      document.getElementById('menu-diff-hard').textContent = t.diffHard;
+      document.getElementById('menu-diff-extreme').textContent = t.diffExtreme;
+      el.uiMenuBtnPlay.textContent = t.startMatch;
+
+      // Settings Modal (Menu)
+      el.modalSettingsTitle.innerHTML = `<span>⚙️</span> ${t.settingsTitle}`;
+      el.uiSettingsSubtitle.textContent = t.preferencesSection;
+      el.uiSettingsLabelSound.textContent = t.soundEffects;
+      el.settingsSoundStatus.textContent = soundEnabled ? t.soundOn : t.soundOff;
+      el.uiSettingsLabelLang.textContent = t.language;
+      el.settingsLangFlag.textContent = t.flag;
+      el.settingsLangCode.textContent = t.code;
+      el.btnCloseSettings.textContent = t.doneBtn;
+
+      // In-game texts
+      el.uiGameTitle.textContent = t.title;
+      el.uiBtnPauseLabel.textContent = t.pauseMenu;
+      el.turnSubtitle.textContent = t.turnCurrent;
+      el.uiGameFooterTip.textContent = t.footerTip;
+
+      // Pause Modal Texts
+      el.modalPauseTitle.innerHTML = `<span>⏸️</span> ${t.gamePaused}`;
+      el.uiPauseResume.textContent = t.resumeMatch;
+      el.uiPauseRestart.textContent = t.restartMatch;
+      el.uiPauseMenu.textContent = t.mainMenu;
+      el.uiPausePreferencesTitle.textContent = t.preferencesSection;
+      el.uiPauseLabelSound.textContent = t.soundEffects;
+      el.pauseSoundStatus.textContent = soundEnabled ? t.soundOn : t.soundOff;
+      el.uiPauseLabelLang.textContent = t.language;
+      el.pauseLangFlag.textContent = t.flag;
+      el.pauseLangCode.textContent = t.code;
+      el.uiPauseViewRules.textContent = t.howToPlayTitle;
+
+      // Rules Modal Texts & Visual Diagram
+      el.modalRulesTitle.innerHTML = `<span>🧠</span> ${t.howToPlayTitle}`;
+      el.ruleDiagramTitle.textContent = t.ruleDiagramTitle;
+      el.ruleDiagramDesc.innerHTML = t.ruleDiagramDesc;
+      el.ruleItem1Title.textContent = t.rule1Title;
+      el.ruleItem1Desc.textContent = t.rule1Desc;
+      el.ruleItem2Title.textContent = t.rule2Title;
+      el.ruleItem2Desc.textContent = t.rule2Desc;
+      el.ruleItem3Title.textContent = t.rule3Title;
+      el.ruleItem3Desc.textContent = t.rule3Desc;
+      el.ruleItem4Title.textContent = t.rule4Title;
+      el.ruleItem4Desc.textContent = t.rule4Desc;
+      el.ruleItem5Title.textContent = t.rule5Title;
+      el.ruleItem5Desc.textContent = t.rule5Desc;
+      el.btnCloseRules.textContent = t.gotIt;
+
+      // Winner Modal Buttons
+      el.btnModalRestart.textContent = t.playAgain;
+      el.btnModalToMenu.textContent = t.mainMenu;
+
+      updateModeBadge();
+      updatePlayerCards();
+      updateTurnAndDirectives();
+    }
+
+    function updateModeBadge() {
+      const t = I18N[currentLang];
+      if (gameMode === 'solo') {
+        const diffMap = { easy: t.diffEasy, medium: t.diffMed, hard: t.diffHard, extreme: t.diffExtreme };
+        el.uiGameModeBadge.textContent = `🤖 Solo • ${diffMap[difficulty] || difficulty}`;
+      } else {
+        el.uiGameModeBadge.textContent = `👥 ${t.modePvpTitle}`;
+      }
+    }
+
+    /* ==========================================================================
+       6. SCREEN NAVIGATION & MENU SETUP
+       ========================================================================== */
+    function showScreen(screen) {
+      if (screen === 'menu') {
+        el.screenMenu.classList.remove('hidden');
+        el.screenGame.classList.add('hidden');
+      } else {
+        el.screenMenu.classList.add('hidden');
+        el.screenGame.classList.remove('hidden');
+      }
+    }
+
+    function syncMenuSelections() {
+      if (gameMode === 'solo') {
+        el.menuOptSolo.className = 'flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-indigo-500 bg-indigo-950/50 shadow-lg shadow-indigo-950/50';
+        el.menuOptPvp.className = 'flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700';
+        el.menuDiffSection.classList.remove('opacity-30', 'pointer-events-none');
+      } else {
+        el.menuOptPvp.className = 'flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-indigo-500 bg-indigo-950/50 shadow-lg shadow-indigo-950/50';
+        el.menuOptSolo.className = 'flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700';
+        el.menuDiffSection.classList.add('opacity-30', 'pointer-events-none');
+      }
+
+      el.menuDiffButtons.forEach(btn => {
+        if (btn.getAttribute('data-diff') === difficulty) {
+          btn.className = 'menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-indigo-500 bg-indigo-950/70 text-white shadow-md shadow-indigo-950/50';
+        } else {
+          btn.className = 'menu-diff-btn py-2 px-1 rounded-xl text-xs font-bold border-2 transition active:scale-95 border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700';
+        }
+      });
+
+      updateModeBadge();
+    }
+
+    /* ==========================================================================
+       7. BOARD INITIALIZATION & GAMEPLAY LOGIC
+       ========================================================================== */
+    function initMacroBoardDOM() {
+      el.macroBoard.innerHTML = '';
+
+      for (let b = 0; b < 9; b++) {
+        const miniBoard = document.createElement('div');
+        miniBoard.id = `board-${b}`;
+        miniBoard.className = `grid grid-cols-3 gap-1 bg-slate-950 p-1 sm:p-1.5 rounded-xl border border-slate-800 relative transition-all duration-300`;
+
+        for (let c = 0; c < 9; c++) {
+          const cell = document.createElement('button');
+          cell.id = `cell-${b}-${c}`;
+          cell.className = `cell-btn aspect-square bg-slate-800/80 hover:bg-slate-700/80 rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all disabled:cursor-not-allowed`;
+          cell.setAttribute('aria-label', `Board ${b + 1}, Cell ${c + 1}`);
+          cell.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleUserMove(b, c);
+          });
+          miniBoard.appendChild(cell);
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = `overlay-${b}`;
+        overlay.className = `absolute inset-0 rounded-xl flex items-center justify-center font-black font-mono transition-all duration-300 opacity-0 pointer-events-none backdrop-blur-[2px] z-10`;
+        miniBoard.appendChild(overlay);
+
+        el.macroBoard.appendChild(miniBoard);
+      }
+    }
+
+    function checkLineWinner(grid) {
+      for (const combo of WIN_COMBOS) {
+        const [a, b, c] = combo;
+        if (grid[a] && grid[a] !== 'T' && grid[a] === grid[b] && grid[a] === grid[c]) {
+          return grid[a];
+        }
+      }
+      if (grid.every(cell => cell !== '')) {
+        return 'T';
+      }
+      return null;
+    }
+
+    function isBoardOpen(bIdx) {
+      return macroBoard[bIdx] === '' && boards[bIdx].some(c => c === '');
+    }
+
+    function getAvailableMoves(bList, mBoard, activeIdx) {
+      const moves = [];
+      if (activeIdx !== null && isBoardOpen(activeIdx)) {
+        for (let c = 0; c < 9; c++) {
+          if (bList[activeIdx][c] === '') {
+            moves.push({ b: activeIdx, c });
+          }
+        }
+      } else {
+        for (let b = 0; b < 9; b++) {
+          if (isBoardOpen(b)) {
+            for (let c = 0; c < 9; c++) {
+              if (bList[b][c] === '') {
+                moves.push({ b, c });
+              }
+            }
+          }
+        }
+      }
+      return moves;
+    }
+
+    function handleUserMove(boardIdx, cellIdx) {
+      if (winner || isAiThinking) return;
+      if (gameMode === 'solo' && currentPlayer !== 'X') return;
+
+      if (activeBoardIndex !== null && activeBoardIndex !== boardIdx) {
+        sound.playError();
+        return;
+      }
+
+      if (macroBoard[boardIdx] !== '' || boards[boardIdx][cellIdx] !== '') {
+        sound.playError();
+        return;
+      }
+
+      executeMove(boardIdx, cellIdx);
+    }
+
+    function executeMove(boardIdx, cellIdx) {
+      const player = currentPlayer;
+      sound.playClick(player === 'O');
+      boards[boardIdx][cellIdx] = player;
+
+      const miniWin = checkLineWinner(boards[boardIdx]);
+      if (miniWin) {
+        macroBoard[boardIdx] = miniWin;
+        if (miniWin !== 'T') sound.playMiniWin();
+
+        const macroWin = checkLineWinner(macroBoard);
+        if (macroWin) {
+          winner = macroWin;
+          handleGameOver(winner);
+          renderUI();
+          return;
+        }
+      }
+
+      if (isBoardOpen(cellIdx)) {
+        activeBoardIndex = cellIdx;
+      } else {
+        activeBoardIndex = null;
+      }
+
+      currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
+      renderUI();
+
+      if (!winner && gameMode === 'solo' && currentPlayer === 'O') {
+        triggerAiTurn();
+      }
+    }
+
+    /* ==========================================================================
+       8. LOCAL AI ENGINE WITH IMMERSIVE THINKING DELAY
+       ========================================================================== */
+    function triggerAiTurn() {
+      isAiThinking = true;
+      renderUI();
+
+      // Meaningful tactical delay based on difficulty
+      let baseDelay = 700;
+      let variance = 300;
+      if (difficulty === 'hard') {
+        baseDelay = 850;
+        variance = 300;
+      } else if (difficulty === 'extreme') {
+        baseDelay = 1000;
+        variance = 350;
+      }
+      const delay = baseDelay + Math.floor(Math.random() * variance);
+
+      setTimeout(() => {
+        if (winner || currentPlayer !== 'O') {
+          isAiThinking = false;
+          renderUI();
+          return;
+        }
+
+        const move = calculateAiMove();
+        isAiThinking = false;
+
+        if (move) {
+          executeMove(move.b, move.c);
+        }
+      }, delay);
+    }
+
+    function calculateAiMove() {
+      const legalMoves = getAvailableMoves(boards, macroBoard, activeBoardIndex);
+      if (legalMoves.length === 0) return null;
+
+      if (difficulty === 'easy') {
+        return calculateEasyMove(legalMoves);
+      } else if (difficulty === 'medium') {
+        return calculateMediumMove(legalMoves);
+      } else if (difficulty === 'hard') {
+        return calculateHardMove(legalMoves);
+      } else {
+        return calculateExtremeMove(legalMoves);
+      }
+    }
+
+    function calculateEasyMove(legalMoves) {
+      if (Math.random() < 0.70) {
+        return legalMoves[Math.floor(Math.random() * legalMoves.length)];
+      }
+      return calculateMediumMove(legalMoves);
+    }
+
+    function calculateMediumMove(legalMoves) {
+      for (const m of legalMoves) {
+        if (wouldWinMiniBoard(boards[m.b], m.c, 'O')) return m;
+      }
+      for (const m of legalMoves) {
+        if (wouldWinMiniBoard(boards[m.b], m.c, 'X')) return m;
+      }
+      const centerMoves = legalMoves.filter(m => m.c === 4);
+      if (centerMoves.length > 0 && Math.random() < 0.6) {
+        return centerMoves[Math.floor(Math.random() * centerMoves.length)];
+      }
+      const cornerMoves = legalMoves.filter(m => [0, 2, 6, 8].includes(m.c));
+      if (cornerMoves.length > 0 && Math.random() < 0.5) {
+        return cornerMoves[Math.floor(Math.random() * cornerMoves.length)];
+      }
+      return legalMoves[Math.floor(Math.random() * legalMoves.length)];
+    }
+
+    function calculateHardMove(legalMoves) {
+      let bestMove = null;
+      let highestScore = -Infinity;
+
+      for (const m of legalMoves) {
+        let score = 0;
+        if (wouldWinMiniBoard(boards[m.b], m.c, 'O')) {
+          score += 2000;
+          if (wouldWinMacroBoard(macroBoard, m.b, 'O')) score += 100000;
+        }
+        if (wouldWinMiniBoard(boards[m.b], m.c, 'X')) {
+          score += 1200;
+          if (wouldWinMacroBoard(macroBoard, m.b, 'X')) score += 40000;
+        }
+
+        score += evaluateMacroSynergy(m.b, 'O') * 200;
+        score += evaluateMacroSynergy(m.b, 'X') * 150;
+
+        const targetBoardWon = macroBoard[m.c] !== '' || !boards[m.c].some(cell => cell === '');
+        if (targetBoardWon) {
+          score -= 1000;
+        } else if (hasImmediateWinInBoard(boards[m.c], 'X')) {
+          score -= 500;
+        }
+
+        if (m.c === 4) score += 40;
+        else if ([0, 2, 6, 8].includes(m.c)) score += 25;
+        else score += 10;
+
+        score += Math.random() * 5;
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestMove = m;
+        }
+      }
+      return bestMove || legalMoves[0];
+    }
+
+    function calculateExtremeMove(legalMoves) {
+      let bestMove = null;
+      let highestScore = -Infinity;
+
+      for (const m of legalMoves) {
+        let score = 0;
+        const aiWinsMini = wouldWinMiniBoard(boards[m.b], m.c, 'O');
+        const humanCouldWinMini = wouldWinMiniBoard(boards[m.b], m.c, 'X');
+
+        if (aiWinsMini) {
+          score += 4000;
+          if (wouldWinMacroBoard(macroBoard, m.b, 'O')) return m;
+        }
+        if (humanCouldWinMini) {
+          score += 2400;
+          if (wouldWinMacroBoard(macroBoard, m.b, 'X')) score += 85000;
+        }
+        if (!aiWinsMini) {
+          const threats = countWinningThreats(boards[m.b], m.c, 'O');
+          if (threats >= 2) score += 800;
+        }
+
+        if (m.b === 4) score += 350;
+        else if ([0, 2, 6, 8].includes(m.b)) score += 180;
+
+        score += evaluateMacroSynergy(m.b, 'O') * 350;
+        score += evaluateMacroSynergy(m.b, 'X') * 250;
+
+        const targetIsWon = macroBoard[m.c] !== '' || !boards[m.c].some(cell => cell === '');
+        if (targetIsWon) {
+          score -= 3000;
+        } else {
+          const humanWinsOnTarget = hasImmediateWinInBoard(boards[m.c], 'X');
+          if (humanWinsOnTarget) {
+            if (wouldWinMacroBoard(macroBoard, m.c, 'X')) {
+              score -= 90000;
+            } else {
+              score -= 1800;
+            }
+          } else {
+            const aiPres = boards[m.c].filter(v => v === 'O').length;
+            const huPres = boards[m.c].filter(v => v === 'X').length;
+            if (aiPres > huPres) score += 200;
+          }
+        }
+
+        if (m.c === 4) score += 60;
+        else if ([0, 2, 6, 8].includes(m.c)) score += 35;
+        else score += 15;
+
+        score += Math.random() * 4;
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestMove = m;
+        }
+      }
+      return bestMove || legalMoves[0];
+    }
+
+    function wouldWinMiniBoard(grid, cellIdx, player) {
+      const copy = [...grid];
+      copy[cellIdx] = player;
+      return checkLineWinner(copy) === player;
+    }
+
+    function wouldWinMacroBoard(mBoard, boardIdx, player) {
+      const copy = [...mBoard];
+      copy[boardIdx] = player;
+      return checkLineWinner(copy) === player;
+    }
+
+    function hasImmediateWinInBoard(grid, player) {
+      for (let c = 0; c < 9; c++) {
+        if (grid[c] === '' && wouldWinMiniBoard(grid, c, player)) return true;
+      }
+      return false;
+    }
+
+    function countWinningThreats(grid, cellIdx, player) {
+      const copy = [...grid];
+      copy[cellIdx] = player;
+      let threats = 0;
+      for (let c = 0; c < 9; c++) {
+        if (copy[c] === '' && wouldWinMiniBoard(copy, c, player)) threats++;
+      }
+      return threats;
+    }
+
+    function evaluateMacroSynergy(boardIdx, player) {
+      const other = player === 'X' ? 'O' : 'X';
+      let synergy = 0;
+      for (const combo of WIN_COMBOS) {
+        if (combo.includes(boardIdx)) {
+          const [a, b, c] = combo;
+          const vals = [macroBoard[a], macroBoard[b], macroBoard[c]];
+          if (!vals.includes(other)) {
+            const count = vals.filter(v => v === player).length;
+            if (count === 1) synergy += 2;
+            else if (count === 2) synergy += 6;
+          }
+        }
+      }
+      return synergy;
+    }
+
+    /* ==========================================================================
+       9. UI UPDATES & DOM STATE SYNC
+       ========================================================================== */
+    function renderUI() {
+      for (let b = 0; b < 9; b++) {
+        const miniBoardEl = document.getElementById(`board-${b}`);
+        const overlayEl = document.getElementById(`overlay-${b}`);
+        const isWon = macroBoard[b] !== '';
+        const isActive = !winner && (activeBoardIndex === null || activeBoardIndex === b) && !isWon;
+
+        if (isActive) {
+          miniBoardEl.classList.add('active-board', 'border-indigo-400');
+          miniBoardEl.classList.remove('border-slate-800', 'opacity-50');
+        } else {
+          miniBoardEl.classList.remove('active-board', 'border-indigo-400');
+          miniBoardEl.classList.add('border-slate-800');
+          if (isWon || (activeBoardIndex !== null && activeBoardIndex !== b)) {
+            miniBoardEl.classList.add('opacity-50');
+          } else {
+            miniBoardEl.classList.remove('opacity-50');
+          }
+        }
+
+        if (isWon) {
+          overlayEl.classList.remove('opacity-0', 'pointer-events-none');
+          overlayEl.classList.add('opacity-100');
+
+          if (macroBoard[b] === 'X') {
+            overlayEl.textContent = 'X';
+            overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-5xl sm:text-6xl font-black font-mono transition-all duration-300 bg-slate-950/85 text-cyan-400 glow-x border-2 border-cyan-500/70 z-10`;
+          } else if (macroBoard[b] === 'O') {
+            overlayEl.textContent = 'O';
+            overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-5xl sm:text-6xl font-black font-mono transition-all duration-300 bg-slate-950/85 text-rose-400 glow-o border-2 border-rose-500/70 z-10`;
+          } else {
+            overlayEl.textContent = '➖';
+            overlayEl.className = `absolute inset-0 rounded-xl flex items-center justify-center text-3xl font-black font-mono transition-all duration-300 bg-slate-950/90 text-slate-500 border border-slate-700 z-10`;
+          }
+        } else {
+          overlayEl.classList.add('opacity-0', 'pointer-events-none');
+          overlayEl.textContent = '';
+        }
+
+        for (let c = 0; c < 9; c++) {
+          const cellBtn = document.getElementById(`cell-${b}-${c}`);
+          const val = boards[b][c];
+          cellBtn.textContent = val;
+
+          if (val === 'X') {
+            cellBtn.className = `cell-btn aspect-square bg-slate-900 text-cyan-400 font-black font-mono text-base sm:text-2xl flex items-center justify-center glow-x rounded-md cursor-default border border-cyan-500/30`;
+            cellBtn.disabled = true;
+          } else if (val === 'O') {
+            cellBtn.className = `cell-btn aspect-square bg-slate-900 text-rose-400 font-black font-mono text-base sm:text-2xl flex items-center justify-center glow-o rounded-md cursor-default border border-rose-500/30`;
+            cellBtn.disabled = true;
+          } else {
+            const canPlay = isActive && val === '' && !isAiThinking && !winner;
+            cellBtn.disabled = !canPlay;
+            if (canPlay) {
+              cellBtn.className = `cell-btn aspect-square bg-slate-800/90 hover:bg-indigo-950/70 active:bg-indigo-900/90 text-slate-400 hover:text-white rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all border border-slate-700/60 shadow-inner`;
+            } else {
+              cellBtn.className = `cell-btn aspect-square bg-slate-900/30 text-transparent rounded-md text-base sm:text-2xl font-black font-mono flex items-center justify-center transition-all border border-slate-900/50 cursor-not-allowed`;
+            }
+          }
+        }
+      }
+
+      updatePlayerCards();
+      updateTurnAndDirectives();
+    }
+
+    function updatePlayerCards() {
+      const t = I18N[currentLang];
+
+      if (gameMode === 'solo') {
+        el.uiPlayerXName.textContent = t.playerYou;
+        el.uiPlayerOName.textContent = (difficulty === 'extreme') ? t.aiMaster : t.aiBot;
+        el.scoreX.textContent = `${savedScores.solo.player} W`;
+        el.scoreO.textContent = `${savedScores.solo.ai} W`;
+      } else {
+        el.uiPlayerXName.textContent = t.playerX;
+        el.uiPlayerOName.textContent = t.playerO;
+        el.scoreX.textContent = `${savedScores.pvp.x} W`;
+        el.scoreO.textContent = `${savedScores.pvp.o} W`;
+      }
+
+      if (currentPlayer === 'X' && !winner) {
+        el.playerXCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-cyan-500/70 bg-cyan-950/40 glow-box-x scale-[1.02]';
+        el.playerOCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-transparent opacity-40 scale-100';
+      } else if (currentPlayer === 'O' && !winner) {
+        el.playerOCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-rose-500/70 bg-rose-950/40 glow-box-o scale-[1.02]';
+        el.playerXCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border transition-all duration-300 border-transparent opacity-40 scale-100';
+      } else {
+        el.playerXCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border border-transparent opacity-60 scale-100';
+        el.playerOCard.className = 'flex items-center gap-2 p-1.5 px-2.5 sm:px-3 rounded-lg border border-transparent opacity-60 scale-100';
+      }
+    }
+
+    function updateTurnAndDirectives() {
+      const t = I18N[currentLang];
+
+      if (winner) {
+        el.turnStatusText.textContent = winner === 'T' ? t.draw : `${winner} ${t.victory}`;
+        el.turnStatusText.className = winner === 'X' ? 'text-xs sm:text-sm font-black text-cyan-400 glow-x' : (winner === 'O' ? 'text-xs sm:text-sm font-black text-rose-400 glow-o' : 'text-xs sm:text-sm font-black text-slate-300');
+        el.directiveIcon.textContent = '🏁';
+        el.directiveText.textContent = winner === 'T' ? t.drawDesc : (winner === 'X' ? t.winDescX : t.winDescO);
+        el.directiveBox.className = "mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300";
+        return;
+      }
+
+      if (isAiThinking) {
+        el.turnStatusText.innerHTML = `<span class="inline-block animate-spin mr-1">⚙️</span> ${t.aiThinking}`;
+        el.turnStatusText.className = 'text-xs sm:text-sm font-black text-rose-400 glow-o animate-pulse truncate';
+      } else if (currentPlayer === 'X') {
+        el.turnStatusText.textContent = (gameMode === 'solo') ? t.yourTurn : t.turnPlayerX;
+        el.turnStatusText.className = 'text-xs sm:text-sm font-black text-cyan-400 glow-x animate-pulse truncate';
+      } else {
+        el.turnStatusText.textContent = (gameMode === 'solo') ? t.aiThinking : t.turnPlayerO;
+        el.turnStatusText.className = 'text-xs sm:text-sm font-black text-rose-400 glow-o animate-pulse truncate';
+      }
+
+      if (activeBoardIndex === null) {
+        el.directiveIcon.textContent = '🎯';
+        el.directiveText.textContent = t.freeMove;
+        el.directiveBox.className = "mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-emerald-950/40 text-emerald-300 border-emerald-800/50 animate-pulse";
+      } else {
+        const boardName = t.boardNames[activeBoardIndex] || `#${activeBoardIndex + 1}`;
+        el.directiveIcon.textContent = '📍';
+        el.directiveText.textContent = t.targetGrid.replace('{name}', boardName);
+        el.directiveBox.className = "mt-1.5 text-center text-[11px] sm:text-xs font-semibold py-1 px-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center gap-1.5 bg-indigo-950/50 text-indigo-300 border-indigo-800/50";
+      }
+    }
+
+    /* ==========================================================================
+       10. GAME OVER & WINNER MODAL
+       ========================================================================== */
+    function handleGameOver(winResult) {
+      if (winResult === 'X') {
+        if (gameMode === 'solo') savedScores.solo.player++;
+        else savedScores.pvp.x++;
+        sound.playGameWin();
+      } else if (winResult === 'O') {
+        if (gameMode === 'solo') {
+          savedScores.solo.ai++;
+          sound.playGameLoss();
+        } else {
+          savedScores.pvp.o++;
+          sound.playGameWin();
+        }
+      } else {
+        sound.playTie();
+      }
+
+      localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(savedScores));
+      setTimeout(showWinnerModal, 650);
+    }
+
+    function showWinnerModal() {
+      const t = I18N[currentLang];
+
+      if (winner === 'X') {
+        el.winnerIcon.textContent = '🏆';
+        el.winnerTitle.textContent = t.victory;
+        el.winnerTitle.className = 'text-2xl sm:text-3xl font-black mb-1 text-cyan-400 glow-x';
+        el.winnerDesc.textContent = (gameMode === 'solo') ? t.winDescHuman : t.winDescX;
+        el.winnerGlowBg.className = 'absolute -top-16 left-1/2 -translate-x-1/2 w-44 h-44 bg-cyan-500/25 blur-3xl rounded-full pointer-events-none';
+      } else if (winner === 'O') {
+        el.winnerIcon.textContent = (gameMode === 'solo') ? '🤖' : '🔥';
+        el.winnerTitle.textContent = (gameMode === 'solo') ? t.defeat : t.victory;
+        el.winnerTitle.className = 'text-2xl sm:text-3xl font-black mb-1 text-rose-400 glow-o';
+        el.winnerDesc.textContent = (gameMode === 'solo') ? t.winDescAi : t.winDescO;
+        el.winnerGlowBg.className = 'absolute -top-16 left-1/2 -translate-x-1/2 w-44 h-44 bg-rose-500/25 blur-3xl rounded-full pointer-events-none';
+      } else {
+        el.winnerIcon.textContent = '🤝';
+        el.winnerTitle.textContent = t.draw;
+        el.winnerTitle.className = 'text-2xl sm:text-3xl font-black mb-1 text-slate-300';
+        el.winnerDesc.textContent = t.drawDesc;
+        el.winnerGlowBg.className = 'absolute -top-16 left-1/2 -translate-x-1/2 w-44 h-44 bg-slate-500/20 blur-3xl rounded-full pointer-events-none';
+      }
+
+      el.modalWinner.classList.remove('hidden');
+    }
+
+    /* ==========================================================================
+       11. MATCH RESET & RESTART
+       ========================================================================== */
+    function restartMatch() {
+      currentPlayer = 'X';
+      activeBoardIndex = null;
+      boards = Array(9).fill(null).map(() => Array(9).fill(''));
+      macroBoard = Array(9).fill('');
+      winner = null;
+      isAiThinking = false;
+      el.modalWinner.classList.add('hidden');
+      el.modalPause.classList.add('hidden');
+      initMacroBoardDOM();
+      renderUI();
+    }
+
+    /* ==========================================================================
+       12. EVENT LISTENERS & USER INTERACTIONS
+       ========================================================================== */
+    // Menu Mode Selection
+    el.menuOptSolo.addEventListener('click', () => {
+      sound.init();
+      sound.playClick();
+      gameMode = 'solo';
+      localStorage.setItem(STORAGE_KEY_MODE, 'solo');
+      syncMenuSelections();
+    });
+
+    el.menuOptPvp.addEventListener('click', () => {
+      sound.init();
+      sound.playClick();
+      gameMode = 'pvp';
+      localStorage.setItem(STORAGE_KEY_MODE, 'pvp');
+      syncMenuSelections();
+    });
+
+    // Menu Difficulty Selection
+    el.menuDiffButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sound.init();
+        sound.playClick();
+        difficulty = btn.getAttribute('data-diff');
+        localStorage.setItem(STORAGE_KEY_DIFF, difficulty);
+        syncMenuSelections();
+      });
+    });
+
+    // Start Game from Menu
+    el.btnStartGame.addEventListener('click', () => {
+      sound.init();
+      sound.playClick();
+      restartMatch();
+      showScreen('game');
+    });
+
+    // Menu Settings Button -> Opens Settings Modal (Clean)
+    el.btnMenuSettings.addEventListener('click', () => {
+      sound.init();
+      sound.playClick();
+      el.modalSettings.classList.remove('hidden');
+    });
+
+    el.btnCloseSettingsX.addEventListener('click', () => {
+      el.modalSettings.classList.add('hidden');
+    });
+
+    el.btnCloseSettings.addEventListener('click', () => {
+      sound.playClick();
+      el.modalSettings.classList.add('hidden');
+    });
+
+    // Menu Rules Button
+    el.btnMenuRules.addEventListener('click', () => {
+      sound.init();
+      sound.playClick();
+      el.modalRules.classList.remove('hidden');
+    });
+
+    // In-game Pause/Menu Button
+    el.btnOpenPause.addEventListener('click', () => {
+      sound.init();
+      sound.playClick();
+      el.modalPause.classList.remove('hidden');
+    });
+
+    el.btnClosePauseX.addEventListener('click', () => {
+      el.modalPause.classList.add('hidden');
+    });
+
+    el.btnPauseResume.addEventListener('click', () => {
+      sound.playClick();
+      el.modalPause.classList.add('hidden');
+    });
+
+    el.btnPauseRestart.addEventListener('click', () => {
+      sound.playClick();
+      restartMatch();
+    });
+
+    el.btnPauseMenu.addEventListener('click', () => {
+      sound.playClick();
+      el.modalPause.classList.add('hidden');
+      showScreen('menu');
+    });
+
+    // Sound Toggles (Sync both Modals)
+    function toggleSound() {
+      sound.init();
+      soundEnabled = !soundEnabled;
+      sound.enabled = soundEnabled;
+      localStorage.setItem(STORAGE_KEY_SOUND, soundEnabled);
+      
+      const t = I18N[currentLang];
+      const icon = soundEnabled ? '🔊' : '🔇';
+      const statusText = soundEnabled ? t.soundOn : t.soundOff;
+
+      el.settingsSoundIcon.textContent = icon;
+      el.settingsSoundStatus.textContent = statusText;
+      el.pauseSoundIcon.textContent = icon;
+      el.pauseSoundStatus.textContent = statusText;
+
+      if (soundEnabled) sound.playClick();
+    }
+
+    el.btnSettingsSoundToggle.addEventListener('click', toggleSound);
+    el.btnPauseSoundToggle.addEventListener('click', toggleSound);
+
+    // Language Dropdowns (Both Modals)
+    el.btnSettingsLang.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sound.init();
+      el.dropdownSettingsLang.classList.toggle('hidden');
+    });
+
+    el.btnPauseLang.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sound.init();
+      el.dropdownPauseLang.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', () => {
+      el.dropdownSettingsLang.classList.add('hidden');
+      el.dropdownPauseLang.classList.add('hidden');
+    });
+
+    document.querySelectorAll('.lang-opt').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const lang = btn.getAttribute('data-lang');
+        sound.init();
+        sound.playClick();
+        applyLanguage(lang);
+        el.dropdownSettingsLang.classList.add('hidden');
+        el.dropdownPauseLang.classList.add('hidden');
+      });
+    });
+
+    // Rules Open/Close
+    el.btnPauseOpenRules.addEventListener('click', () => {
+      sound.playClick();
+      el.modalRules.classList.remove('hidden');
+    });
+
+    el.btnCloseRules.addEventListener('click', () => {
+      sound.playClick();
+      el.modalRules.classList.add('hidden');
+    });
+
+    el.btnCloseRulesX.addEventListener('click', () => {
+      el.modalRules.classList.add('hidden');
+    });
+
+    // Winner Modal Actions (View Board removed)
+    el.btnModalRestart.addEventListener('click', () => {
+      sound.playClick();
+      restartMatch();
+    });
+
+    el.btnModalToMenu.addEventListener('click', () => {
+      sound.playClick();
+      el.modalWinner.classList.add('hidden');
+      showScreen('menu');
+    });
+
+    // Audio Context unlock on initial touch/click
+    window.addEventListener('click', () => sound.init(), { once: true });
+    window.addEventListener('touchstart', () => sound.init(), { once: true });
+
+    /* ==========================================================================
+       13. BOOTSTRAP INITIALIZATION
+       ========================================================================== */
+    function bootstrap() {
+      initMacroBoardDOM();
+      syncMenuSelections();
+      applyLanguage(currentLang);
+      showScreen('menu');
+    }
+
+    bootstrap();
+  </script>
+</body>
+</html>
